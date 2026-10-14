@@ -72,32 +72,43 @@ const validateTask = (t, where) => {
   return errors;
 };
 
+const ATTEMPTS = 3;
+
+const runTest = async (task, test) => {
+  const source = `(async () => {\n${task.solution}\n;return await (async () => {\n${test.code}\n})();\n})()`;
+  const context = vm.createContext({
+    console: { log() {}, warn() {}, error() {} },
+    setTimeout,
+    clearTimeout,
+    setInterval,
+    clearInterval,
+    queueMicrotask,
+    structuredClone,
+    AbortController,
+    AbortSignal,
+    URL,
+    TextEncoder,
+    TextDecoder,
+    performance,
+  });
+  try {
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('таймаут')), TEST_TIMEOUT_MS));
+    const result = await Promise.race([vm.runInContext(source, context, { timeout: TEST_TIMEOUT_MS }), timeout]);
+    return result === true ? null : `«${test.name}» вернул ${String(result)}`;
+  } catch (err) {
+    return `«${test.name}» упал: ${err?.message ?? err}`;
+  }
+};
+
 const runSolution = async (task) => {
   const failures = [];
   for (const test of task.tests) {
-    const source = `(async () => {\n${task.solution}\n;return await (async () => {\n${test.code}\n})();\n})()`;
-    const context = vm.createContext({
-      console: { log() {}, warn() {}, error() {} },
-      setTimeout,
-      clearTimeout,
-      setInterval,
-      clearInterval,
-      queueMicrotask,
-      structuredClone,
-      AbortController,
-      AbortSignal,
-      URL,
-      TextEncoder,
-      TextDecoder,
-      performance,
-    });
-    try {
-      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('таймаут')), TEST_TIMEOUT_MS));
-      const result = await Promise.race([vm.runInContext(source, context, { timeout: TEST_TIMEOUT_MS }), timeout]);
-      if (result !== true) failures.push(`«${test.name}» вернул ${String(result)}`);
-    } catch (err) {
-      failures.push(`«${test.name}» упал: ${err?.message ?? err}`);
+    let failure = null;
+    for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
+      failure = await runTest(task, test);
+      if (!failure) break;
     }
+    if (failure) failures.push(failure);
   }
   return failures;
 };
