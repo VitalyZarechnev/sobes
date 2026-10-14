@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Игровой цикл и частицы</title>
+<style>
+  :root { color-scheme: light dark; --bg: #f8fafc; --fg: #0f172a; --muted: #64748b; --panel: #ffffff; --border: #e2e8f0; --accent: #2563eb; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0b1220; --fg: #e5e7eb; --muted: #94a3b8; --panel: #111827; --border: #1f2937; --accent: #60a5fa; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+  main { max-width: 980px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) 280px; }
+  @media (max-width: 760px) { main { grid-template-columns: 1fr; } }
+  h1, p.lead { grid-column: 1 / -1; margin: 0; }
+  h1 { font-size: 20px; }
+  p.lead { color: var(--muted); }
+  canvas { width: 100%; aspect-ratio: 16 / 10; background: #020617; border-radius: 12px; display: block; touch-action: none; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: grid; gap: 12px; align-content: start; }
+  label { display: grid; gap: 4px; font-size: 14px; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .stats { font: 13px/1.6 ui-monospace, monospace; background: var(--bg); padding: 8px; border-radius: 8px; white-space: pre; }
+  button { font: inherit; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--fg); cursor: pointer; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Игровой цикл: requestAnimationFrame, delta time, фиксированный шаг</h1>
+  <p class="lead">Кликайте или ведите по холсту — появятся частицы с гравитацией. Сравните скорость при «искусственной нагрузке» с delta time и без. Пул объектов избавляет от сборки мусора в каждом кадре. ← <a href="../02-animation-and-interaction.md">к теории</a></p>
+  <canvas id="c" aria-label="Анимация частиц"></canvas>
+  <div class="panel">
+    <label>Частиц за событие <output id="burstOut"></output><input id="burst" type="range" min="10" max="400" value="80"></label>
+    <label>Искусственная нагрузка на кадр, мс <output id="loadOut"></output><input id="load" type="range" min="0" max="40" value="0"></label>
+    <label class="row"><input id="useDt" type="checkbox" checked> Учитывать delta time</label>
+    <label class="row"><input id="fixed" type="checkbox"> Фиксированный шаг физики (1/120 c)</label>
+    <div class="row"><button id="pause" type="button">Пауза</button><button id="clear" type="button">Очистить</button></div>
+    <div class="stats" id="stats"></div>
+  </div>
+</main>
+<script>
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const $ = (id) => document.getElementById(id);
+  const MAX = 20000;
+  const GRAVITY = 900; // px/c²
+  const FIXED_STEP = 1 / 120;
+
+  // Пул: структура массивов в типизированных массивах — без аллокаций в кадре
+  const px = new Float32Array(MAX), py = new Float32Array(MAX);
+  const vx = new Float32Array(MAX), vy = new Float32Array(MAX);
+  const life = new Float32Array(MAX), hue = new Float32Array(MAX);
+  let count = 0;
+
+  function spawn(x, y, n) {
+    for (let i = 0; i < n && count < MAX; i++, count++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 100 + Math.random() * 300;
+      px[count] = x; py[count] = y;
+      vx[count] = Math.cos(angle) * speed; vy[count] = Math.sin(angle) * speed - 200;
+      life[count] = 1.5 + Math.random() * 1.5;
+      hue[count] = (performance.now() / 20 + Math.random() * 40) % 360;
+    }
+  }
+
+  function step(dt) {
+    const { width, height } = canvas.getBoundingClientRect();
+    for (let i = 0; i < count; i++) {
+      vy[i] += GRAVITY * dt;
+      px[i] += vx[i] * dt; py[i] += vy[i] * dt;
+      if (py[i] > height) { py[i] = height; vy[i] *= -0.6; vx[i] *= 0.8; } // отскок от пола
+      life[i] -= dt;
+      if (life[i] <= 0 || px[i] < -50 || px[i] > width + 50) {
+        // Удаление за O(1): переносим последний элемент на место удалённого
+        count--;
+        px[i] = px[count]; py[i] = py[count]; vx[i] = vx[count]; vy[i] = vy[count]; life[i] = life[count]; hue[i] = hue[count];
+        i--;
+      }
+    }
+  }
+
+  function render() {
+    const { width, height } = canvas.getBoundingClientRect();
+    ctx.fillStyle = 'rgba(2, 6, 23, 0.35)'; // полупрозрачная заливка даёт шлейф
+    ctx.fillRect(0, 0, width, height);
+    for (let i = 0; i < count; i++) {
+      ctx.fillStyle = `hsl(${hue[i]} 90% ${40 + life[i] * 15}%)`;
+      ctx.fillRect(px[i], py[i], 3, 3); // fillRect дешевле arc для тысяч точек
+    }
+  }
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    const { width, height } = canvas.getBoundingClientRect();
+    canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  new ResizeObserver(resize).observe(canvas);
+
+  let last = performance.now(), accumulator = 0, paused = false, fps = 0, frames = 0, fpsTime = last;
+  function frame(now) {
+    const realDt = Math.min((now - last) / 1000, 0.1); // ограничение: после переключения вкладки не «телепортироваться»
+    last = now;
+    const busyUntil = performance.now() + Number($('load').value);
+    while (performance.now() < busyUntil) { /* имитация тяжёлой работы */ }
+
+    if (!paused) {
+      const dt = $('useDt').checked ? realDt : 1 / 60; // без delta time скорость зависит от FPS
+      if ($('fixed').checked) {
+        accumulator += dt;
+        while (accumulator >= FIXED_STEP) { step(FIXED_STEP); accumulator -= FIXED_STEP; }
+      } else {
+        step(dt);
+      }
+    }
+    render();
+
+    frames++;
+    if (now - fpsTime > 500) { fps = (frames * 1000) / (now - fpsTime); frames = 0; fpsTime = now; }
+    $('stats').textContent = `FPS:      ${fps.toFixed(0)}\nчастиц:   ${count}\ndt кадра: ${(realDt * 1000).toFixed(1)} мс`;
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  let pointerDown = false;
+  const emit = (e) => { const r = canvas.getBoundingClientRect(); spawn(e.clientX - r.left, e.clientY - r.top, Number($('burst').value)); };
+  canvas.addEventListener('pointerdown', (e) => { pointerDown = true; canvas.setPointerCapture(e.pointerId); emit(e); });
+  canvas.addEventListener('pointermove', (e) => { if (pointerDown) emit(e); });
+  canvas.addEventListener('pointerup', () => { pointerDown = false; });
+  $('pause').addEventListener('click', () => { paused = !paused; $('pause').textContent = paused ? 'Продолжить' : 'Пауза'; });
+  $('clear').addEventListener('click', () => { count = 0; });
+  for (const [input, out] of [['burst', 'burstOut'], ['load', 'loadOut']]) {
+    const sync = () => { $(out).textContent = $(input).value; };
+    $(input).addEventListener('input', sync); sync();
+  }
+  // Уважаем настройку «уменьшить движение»: стартуем на паузе
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { paused = true; $('pause').textContent = 'Продолжить'; }
+  setTimeout(() => { const r = canvas.getBoundingClientRect(); spawn(r.width / 2, r.height / 3, 200); }, 100);
+</script>
+</body>
+</html>

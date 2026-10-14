@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Canvas и devicePixelRatio</title>
+<style>
+  :root { color-scheme: light dark; --bg: #f8fafc; --fg: #0f172a; --muted: #64748b; --panel: #ffffff; --border: #e2e8f0; --accent: #2563eb; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0b1220; --fg: #e5e7eb; --muted: #94a3b8; --panel: #111827; --border: #1f2937; --accent: #60a5fa; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+  main { max-width: 980px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p { color: var(--muted); margin: 0 0 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  figure { margin: 0; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+  figcaption { font-weight: 600; margin-bottom: 8px; }
+  canvas { width: 100%; height: 160px; display: block; border-radius: 8px; background: var(--bg); }
+  .zoom { image-rendering: pixelated; height: 200px; }
+  pre { font: 13px/1.4 ui-monospace, monospace; background: var(--bg); padding: 8px; border-radius: 8px; white-space: pre-wrap; margin: 8px 0 0; }
+  a { color: var(--accent); }
+  .info { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Почему canvas размыт на retina и как это исправить</h1>
+  <p>Ваш <span class="info" id="dpr"></span>. Слева буфер равен CSS-размеру — браузер растягивает его, и текст размывается. Справа буфер умножен на DPR, а контекст масштабирован. Наведите курсор на любой холст — внизу увеличенный фрагмент. ← <a href="../01-canvas-2d-basics.md">к теории</a></p>
+  <div class="grid">
+    <figure>
+      <figcaption>Без учёта DPR</figcaption>
+      <canvas id="blurry"></canvas>
+      <pre>canvas.width = cssWidth;
+canvas.height = cssHeight;</pre>
+    </figure>
+    <figure>
+      <figcaption>С учётом DPR</figcaption>
+      <canvas id="sharp"></canvas>
+      <pre>canvas.width = cssWidth * dpr;
+canvas.height = cssHeight * dpr;
+ctx.scale(dpr, dpr);</pre>
+    </figure>
+    <figure>
+      <figcaption>Лупа ×6</figcaption>
+      <canvas id="zoom" class="zoom" aria-label="Увеличенный фрагмент под курсором"></canvas>
+    </figure>
+  </div>
+</main>
+<script>
+  const dpr = window.devicePixelRatio || 1;
+  document.getElementById('dpr').textContent = `devicePixelRatio = ${dpr}`;
+
+  function paint(canvas, useDpr) {
+    const { width, height } = canvas.getBoundingClientRect();
+    const ratio = useDpr ? dpr : 1;
+    canvas.width = Math.round(width * ratio);
+    canvas.height = Math.round(height * ratio);
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    const fg = getComputedStyle(document.body).color;
+    ctx.fillStyle = fg;
+    ctx.font = '16px system-ui, sans-serif';
+    ctx.fillText('Чёткий текст? 0123456789', 12, 30);
+    ctx.font = '11px system-ui, sans-serif';
+    ctx.fillText('Мелкий текст подписи графика', 12, 52);
+    ctx.strokeStyle = fg;
+    ctx.lineWidth = 1;
+    // Линия толщиной 1px на полупикселе — чтобы она попала ровно в ряд пикселей
+    ctx.beginPath(); ctx.moveTo(12, 70.5); ctx.lineTo(width - 12, 70.5); ctx.stroke();
+    ctx.beginPath(); ctx.arc(60, 115, 30, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(110, 140); ctx.lineTo(width - 20, 90); ctx.stroke();
+  }
+
+  const blurry = document.getElementById('blurry');
+  const sharp = document.getElementById('sharp');
+  const zoom = document.getElementById('zoom');
+
+  function drawZoom(source, x, y) {
+    const { width, height } = zoom.getBoundingClientRect();
+    zoom.width = width; zoom.height = height;
+    const z = zoom.getContext('2d');
+    z.imageSmoothingEnabled = false; // показываем реальные пиксели буфера
+    const scaleX = source.width / source.getBoundingClientRect().width;
+    const scaleY = source.height / source.getBoundingClientRect().height;
+    const size = width / 6;
+    // Берём фрагмент из буфера в CSS-масштабе, чтобы обе картинки были сопоставимы
+    z.drawImage(source, (x - size / 2) * scaleX, (y - height / 12) * scaleY, size * scaleX, (height / 6) * scaleY, 0, 0, width, height);
+  }
+
+  for (const canvas of [blurry, sharp]) {
+    canvas.addEventListener('pointermove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      drawZoom(canvas, e.clientX - rect.left, e.clientY - rect.top);
+    });
+  }
+
+  function render() {
+    paint(blurry, false);
+    paint(sharp, true);
+    drawZoom(sharp, 80, 30);
+  }
+  new ResizeObserver(render).observe(document.body);
+</script>
+</body>
+</html>

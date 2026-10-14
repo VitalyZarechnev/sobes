@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drag, zoom и pan на Canvas</title>
+<style>
+  :root { color-scheme: light dark; --bg: #f8fafc; --fg: #0f172a; --muted: #64748b; --panel: #ffffff; --border: #e2e8f0; --accent: #2563eb; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0b1220; --fg: #e5e7eb; --muted: #94a3b8; --panel: #111827; --border: #1f2937; --accent: #60a5fa; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+  main { max-width: 980px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p { color: var(--muted); margin: 0 0 12px; }
+  canvas { width: 100%; aspect-ratio: 16 / 10; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; display: block; touch-action: none; cursor: grab; }
+  canvas.dragging { cursor: grabbing; }
+  .status { font: 13px ui-monospace, monospace; color: var(--muted); margin-top: 8px; }
+  kbd { border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; font: 12px ui-monospace, monospace; }
+  a { color: var(--accent); }
+  button { font: inherit; padding: 4px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Hit-testing, drag &amp; drop, zoom вокруг курсора</h1>
+  <p>Тащите фигуры мышью или пальцем. Пустое место — панорама. Колесо (или <kbd>+</kbd>/<kbd>−</kbd>) — масштаб вокруг курсора. Выбранную фигуру можно двигать стрелками. <button id="reset" type="button">Сбросить вид</button> ← <a href="../02-animation-and-interaction.md">к теории</a></p>
+  <canvas id="c" tabindex="0" aria-label="Холст с перетаскиваемыми фигурами. Tab выбирает фигуру, стрелки двигают."></canvas>
+  <div class="status" id="status" aria-live="polite"></div>
+</main>
+<script>
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const status = document.getElementById('status');
+
+  const shapes = [
+    { name: 'Синий круг', type: 'circle', x: 160, y: 140, r: 50, color: '#2563eb' },
+    { name: 'Оранжевый квадрат', type: 'rect', x: 340, y: 120, w: 110, h: 110, color: '#f97316' },
+    { name: 'Зелёный треугольник', type: 'triangle', x: 560, y: 180, size: 120, color: '#16a34a' },
+    { name: 'Фиолетовая звезда', type: 'star', x: 300, y: 330, size: 70, color: '#9333ea' },
+  ];
+  const camera = { x: 0, y: 0, zoom: 1 }; // мировые координаты = (экранные − смещение) / zoom
+  let selected = null;
+  let drag = null; // { kind: 'shape' | 'pan', ... }
+
+  function path(s) {
+    const p = new Path2D();
+    if (s.type === 'circle') p.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    else if (s.type === 'rect') p.rect(s.x, s.y, s.w, s.h);
+    else if (s.type === 'triangle') { p.moveTo(s.x, s.y - s.size / 2); p.lineTo(s.x + s.size / 2, s.y + s.size / 2); p.lineTo(s.x - s.size / 2, s.y + s.size / 2); p.closePath(); }
+    else if (s.type === 'star') {
+      for (let i = 0; i < 10; i++) {
+        const a = (i * Math.PI) / 5 - Math.PI / 2;
+        const r = i % 2 === 0 ? s.size : s.size / 2.5;
+        p[i === 0 ? 'moveTo' : 'lineTo'](s.x + Math.cos(a) * r, s.y + Math.sin(a) * r);
+      }
+      p.closePath();
+    }
+    return p;
+  }
+
+  const toWorld = (sx, sy) => ({ x: (sx - camera.x) / camera.zoom, y: (sy - camera.y) / camera.zoom });
+  const screenPoint = (e) => { const r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+
+  // Hit-test сверху вниз: последняя нарисованная фигура — сверху. isPointInPath работает в мировых координатах пути
+  function hitTest(world) {
+    for (let i = shapes.length - 1; i >= 0; i--) {
+      if (ctx.isPointInPath(path(shapes[i]), world.x, world.y)) return shapes[i];
+    }
+    return null;
+  }
+
+  function draw() {
+    const dpr = window.devicePixelRatio || 1;
+    const { width, height } = canvas.getBoundingClientRect();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Матрица: dpr × камера. isPointInPath ниже использует текущую матрицу, поэтому для hit-test её сбрасываем
+    ctx.setTransform(dpr * camera.zoom, 0, 0, dpr * camera.zoom, dpr * camera.x, dpr * camera.y);
+    ctx.strokeStyle = 'rgba(100,116,139,0.15)';
+    ctx.lineWidth = 1 / camera.zoom;
+    const tl = toWorld(0, 0), br = toWorld(width, height);
+    for (let x = Math.floor(tl.x / 50) * 50; x < br.x; x += 50) { ctx.beginPath(); ctx.moveTo(x, tl.y); ctx.lineTo(x, br.y); ctx.stroke(); }
+    for (let y = Math.floor(tl.y / 50) * 50; y < br.y; y += 50) { ctx.beginPath(); ctx.moveTo(tl.x, y); ctx.lineTo(br.x, y); ctx.stroke(); }
+    for (const s of shapes) {
+      const p = path(s);
+      ctx.fillStyle = s.color;
+      ctx.globalAlpha = s === selected ? 1 : 0.85;
+      ctx.fill(p);
+      if (s === selected) { ctx.lineWidth = 3 / camera.zoom; ctx.strokeStyle = getComputedStyle(document.body).color; ctx.stroke(p); }
+    }
+    ctx.globalAlpha = 1;
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // для isPointInPath в мировых координатах
+    status.textContent = `zoom ${camera.zoom.toFixed(2)} · ${selected ? 'выбрано: ' + selected.name : 'ничего не выбрано'}`;
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    canvas.setPointerCapture(e.pointerId); // события продолжат приходить, даже если курсор ушёл за холст
+    const screen = screenPoint(e);
+    const world = toWorld(screen.x, screen.y);
+    const hit = hitTest(world);
+    if (hit) {
+      selected = hit;
+      shapes.splice(shapes.indexOf(hit), 1); shapes.push(hit); // поднять наверх
+      drag = { kind: 'shape', shape: hit, dx: world.x - hit.x, dy: world.y - hit.y };
+    } else {
+      drag = { kind: 'pan', sx: screen.x - camera.x, sy: screen.y - camera.y };
+    }
+    canvas.classList.add('dragging');
+    draw();
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const screen = screenPoint(e);
+    if (drag.kind === 'shape') {
+      const world = toWorld(screen.x, screen.y);
+      drag.shape.x = world.x - drag.dx; drag.shape.y = world.y - drag.dy;
+    } else {
+      camera.x = screen.x - drag.sx; camera.y = screen.y - drag.sy;
+    }
+    draw();
+  });
+  const endDrag = () => { drag = null; canvas.classList.remove('dragging'); };
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+
+  // Zoom вокруг точки: мировая точка под курсором остаётся на месте
+  function zoomAt(screen, factor) {
+    const before = toWorld(screen.x, screen.y);
+    camera.zoom = Math.min(8, Math.max(0.2, camera.zoom * factor));
+    camera.x = screen.x - before.x * camera.zoom;
+    camera.y = screen.y - before.y * camera.zoom;
+    draw();
+  }
+  canvas.addEventListener('wheel', (e) => { e.preventDefault(); zoomAt(screenPoint(e), Math.exp(-e.deltaY * 0.0015)); }, { passive: false });
+
+  canvas.addEventListener('keydown', (e) => {
+    const center = { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 };
+    if (e.key === '+' || e.key === '=') zoomAt(center, 1.2);
+    else if (e.key === '-') zoomAt(center, 1 / 1.2);
+    else if (e.key === 'Tab') {
+      // Tab перебирает фигуры, пока они есть, затем отпускает фокус
+      const idx = selected ? shapes.indexOf(selected) : -1;
+      const next = idx + (e.shiftKey ? -1 : 1);
+      if (next >= 0 && next < shapes.length) { e.preventDefault(); selected = shapes[next]; draw(); }
+    } else if (selected && e.key.startsWith('Arrow')) {
+      e.preventDefault();
+      const d = e.shiftKey ? 20 : 5;
+      if (e.key === 'ArrowLeft') selected.x -= d;
+      if (e.key === 'ArrowRight') selected.x += d;
+      if (e.key === 'ArrowUp') selected.y -= d;
+      if (e.key === 'ArrowDown') selected.y += d;
+      draw();
+    }
+  });
+
+  document.getElementById('reset').addEventListener('click', () => { Object.assign(camera, { x: 0, y: 0, zoom: 1 }); draw(); });
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    const { width, height } = canvas.getBoundingClientRect();
+    canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
+    draw();
+  }
+  new ResizeObserver(resize).observe(canvas);
+</script>
+</body>
+</html>

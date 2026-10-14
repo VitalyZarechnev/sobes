@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Трансформации Canvas 2D</title>
+<style>
+  :root { color-scheme: light dark; --bg: #f8fafc; --fg: #0f172a; --muted: #64748b; --panel: #ffffff; --border: #e2e8f0; --accent: #2563eb; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0b1220; --fg: #e5e7eb; --muted: #94a3b8; --panel: #111827; --border: #1f2937; --accent: #60a5fa; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+  main { max-width: 980px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) 280px; }
+  @media (max-width: 760px) { main { grid-template-columns: 1fr; } }
+  h1 { font-size: 20px; margin: 0 0 4px; grid-column: 1 / -1; }
+  p.lead { margin: 0; color: var(--muted); grid-column: 1 / -1; }
+  canvas { width: 100%; aspect-ratio: 4 / 3; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; display: block; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: grid; gap: 12px; align-content: start; }
+  label { display: grid; gap: 4px; font-size: 14px; }
+  output { font-variant-numeric: tabular-nums; color: var(--muted); }
+  fieldset { border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; }
+  pre { margin: 0; font: 13px/1.4 ui-monospace, monospace; white-space: pre-wrap; background: var(--bg); padding: 8px; border-radius: 8px; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Трансформации Canvas 2D: translate, rotate, scale</h1>
+  <p class="lead">Меняйте значения и порядок операций. Серый контур — фигура до трансформаций, синий — после. Обратите внимание: трансформации применяются к системе координат, поэтому порядок важен. ← <a href="../01-canvas-2d-basics.md">к теории</a></p>
+  <canvas id="c" aria-label="Холст с фигурой до и после трансформаций"></canvas>
+  <div class="panel">
+    <label>translate X <output id="txo"></output><input id="tx" type="range" min="-200" max="200" value="120"></label>
+    <label>translate Y <output id="tyo"></output><input id="ty" type="range" min="-150" max="150" value="40"></label>
+    <label>rotate, ° <output id="ro"></output><input id="r" type="range" min="-180" max="180" value="30"></label>
+    <label>scale <output id="so"></output><input id="s" type="range" min="0.2" max="2.5" step="0.05" value="1.4"></label>
+    <fieldset>
+      <legend>Порядок</legend>
+      <label><span><input type="radio" name="order" value="TRS" checked> translate → rotate → scale</span></label>
+      <label><span><input type="radio" name="order" value="SRT"> scale → rotate → translate</span></label>
+      <label><span><input type="radio" name="order" value="RTS"> rotate → translate → scale</span></label>
+    </fieldset>
+    <pre id="code"></pre>
+  </div>
+</main>
+<script>
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const inputs = ['tx', 'ty', 'r', 's'].map((id) => document.getElementById(id));
+
+  // Чёткость на retina: размер буфера = CSS-размер × devicePixelRatio
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    const { width, height } = canvas.getBoundingClientRect();
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  }
+
+  function shape(fill, stroke) {
+    // Домик с осями, центр — в начале координат
+    ctx.beginPath();
+    ctx.moveTo(-40, 30); ctx.lineTo(-40, -10); ctx.lineTo(0, -45); ctx.lineTo(40, -10); ctx.lineTo(40, 30); ctx.closePath();
+    if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+    ctx.lineWidth = 2; ctx.strokeStyle = stroke; ctx.stroke();
+    // Локальные оси: видно, куда «повернулась» система координат
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(60, 0); ctx.strokeStyle = '#ef4444'; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 60); ctx.strokeStyle = '#22c55e'; ctx.stroke();
+  }
+
+  function draw() {
+    const { width, height } = canvas.getBoundingClientRect();
+    const [tx, ty, r, s] = inputs.map((i) => Number(i.value));
+    const order = document.querySelector('input[name=order]:checked').value;
+    document.getElementById('txo').textContent = tx;
+    document.getElementById('tyo').textContent = ty;
+    document.getElementById('ro').textContent = r;
+    document.getElementById('so').textContent = s.toFixed(2);
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.save();
+    ctx.translate(width / 2, height / 2); // начало координат — центр холста
+    // Сетка
+    ctx.strokeStyle = 'rgba(100,116,139,0.2)'; ctx.lineWidth = 1;
+    for (let x = -width; x < width; x += 20) { ctx.beginPath(); ctx.moveTo(x, -height); ctx.lineTo(x, height); ctx.stroke(); }
+    for (let y = -height; y < height; y += 20) { ctx.beginPath(); ctx.moveTo(-width, y); ctx.lineTo(width, y); ctx.stroke(); }
+
+    shape(null, 'rgba(100,116,139,0.8)'); // исходная фигура
+
+    ctx.save();
+    const ops = {
+      T: () => ctx.translate(tx, ty),
+      R: () => ctx.rotate((r * Math.PI) / 180),
+      S: () => ctx.scale(s, s),
+    };
+    for (const op of order) ops[op]();
+    shape('rgba(37,99,235,0.25)', '#2563eb');
+    ctx.restore(); // save/restore возвращают матрицу и стили
+
+    ctx.restore();
+
+    const names = { T: `ctx.translate(${tx}, ${ty});`, R: `ctx.rotate(${r} * Math.PI / 180);`, S: `ctx.scale(${s}, ${s});` };
+    document.getElementById('code').textContent = `ctx.save();\n${[...order].map((o) => names[o]).join('\n')}\ndrawHouse();\nctx.restore();`;
+  }
+
+  inputs.forEach((i) => i.addEventListener('input', draw));
+  document.querySelectorAll('input[name=order]').forEach((i) => i.addEventListener('change', draw));
+  new ResizeObserver(resize).observe(canvas);
+</script>
+</body>
+</html>
