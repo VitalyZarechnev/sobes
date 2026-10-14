@@ -22,7 +22,7 @@ export interface ReviewItem {
 }
 
 export interface ProgressState {
-  readonly version: 1;
+  readonly version: 2;
   readonly checks: Readonly<Record<string, true>>;
   readonly quizzes: Readonly<Record<string, QuizProgress>>;
   readonly journal: readonly JournalEntry[];
@@ -30,7 +30,7 @@ export interface ProgressState {
 }
 
 export const EMPTY_STATE: ProgressState = {
-  version: 1,
+  version: 2,
   checks: {},
   quizzes: {},
   journal: [],

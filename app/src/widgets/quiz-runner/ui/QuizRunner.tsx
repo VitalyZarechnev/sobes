@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { LEVEL_LABEL, LEVELS, type Level, type Question, type Task } from '@/entities/quiz';
 import { QuestionCard } from '@/features/answer-question';
-import { TaskCard } from '@/features/run-task-tests';
+import { draftKey, TaskCard } from '@/features/run-task-tests';
 import { ProgressBar } from '@/shared/ui';
 
 export interface QuizItem {
@@ -15,14 +15,14 @@ interface QuizRunnerProps {
   readonly answers: Readonly<Record<string, boolean>>;
   readonly solvedTasks: Readonly<Record<string, boolean>>;
   readonly onAnswer: (key: string, correct: boolean) => void;
-  readonly onTaskSolved: (index: number, solved: boolean) => void;
+  readonly onTaskSolved: (taskId: string, solved: boolean) => void;
   readonly onReset?: () => void;
-  readonly draftPrefix: string;
+  readonly draftScope: string;
 }
 
 type Tab = 'questions' | 'tasks';
 
-export function QuizRunner({ items, tasks, answers, solvedTasks, onAnswer, onTaskSolved, onReset, draftPrefix }: QuizRunnerProps) {
+export function QuizRunner({ items, tasks, answers, solvedTasks, onAnswer, onTaskSolved, onReset, draftScope }: QuizRunnerProps) {
   const [level, setLevel] = useState<Level | 'all'>('all');
   const [tab, setTab] = useState<Tab>(items.length > 0 ? 'questions' : 'tasks');
 
@@ -35,7 +35,7 @@ export function QuizRunner({ items, tasks, answers, solvedTasks, onAnswer, onTas
 
   const answered = visibleItems.filter((i) => i.key in answers);
   const correct = answered.filter((i) => answers[i.key]).length;
-  const solved = tasks.filter((_, i) => solvedTasks[String(i)]).length;
+  const solved = tasks.filter((t) => solvedTasks[t.id]).length;
 
   return (
     <div className="quiz">
@@ -89,12 +89,12 @@ export function QuizRunner({ items, tasks, answers, solvedTasks, onAnswer, onTas
       {tab === 'tasks' &&
         visibleTasks.map(({ task, index }) => (
           <TaskCard
-            key={`${draftPrefix}:${index}`}
+            key={task.id}
             task={task}
             index={index}
-            draftKey={`${draftPrefix}:${index}`}
-            solved={Boolean(solvedTasks[String(index)])}
-            onSolvedChange={(value) => onTaskSolved(index, value)}
+            draftKey={draftKey(draftScope, task.id)}
+            solved={Boolean(solvedTasks[task.id])}
+            onSolvedChange={(value) => onTaskSolved(task.id, value)}
           />
         ))}
 

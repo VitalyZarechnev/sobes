@@ -1,13 +1,20 @@
 import { useSyncExternalStore } from 'react';
 import { readJson, writeJson } from '@/shared/lib';
 import { EMPTY_STATE, type JournalEntry, type ProgressState, type QuizProgress, type ReviewItem } from './types';
-import { parseProgressState } from './validate';
+import { isCurrentVersion, parseProgressState } from './validate';
 
 const STORAGE_KEY = 'fe-interview-wiki:progress:v1';
 
 const load = (): ProgressState => parseProgressState(readJson<unknown>(STORAGE_KEY, null)) ?? EMPTY_STATE;
 
-let state: ProgressState = load();
+const loadAndUpgrade = (): ProgressState => {
+  const stored = readJson<unknown>(STORAGE_KEY, null);
+  const parsed = parseProgressState(stored);
+  if (parsed && !isCurrentVersion(stored)) writeJson(STORAGE_KEY, parsed);
+  return parsed ?? EMPTY_STATE;
+};
+
+let state: ProgressState = loadAndUpgrade();
 let saveFailed = false;
 const listeners = new Set<() => void>();
 

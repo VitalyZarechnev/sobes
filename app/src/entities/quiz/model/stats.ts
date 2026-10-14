@@ -16,12 +16,12 @@ interface QuizProgressLike {
 export const quizStats = (quiz: Quiz, progress: QuizProgressLike | undefined): QuizStats => {
   const answers = progress?.answers ?? {};
   const tasks = progress?.tasks ?? {};
-  const answeredKeys = quiz.questions.map((_, i) => String(i)).filter((k) => k in answers);
+  const answeredKeys = quiz.questions.map((q) => q.id).filter((id) => id in answers);
   return {
     answered: answeredKeys.length,
     correct: answeredKeys.filter((k) => answers[k]).length,
     questions: quiz.questions.length,
-    solved: quiz.tasks.filter((_, i) => tasks[String(i)]).length,
+    solved: quiz.tasks.filter((t) => tasks[t.id]).length,
     tasks: quiz.tasks.length,
   };
 };

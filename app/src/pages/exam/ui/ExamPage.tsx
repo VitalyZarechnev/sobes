@@ -16,7 +16,7 @@ const pickQuestions = ({ sections, level, count }: ExamQuery): QuizItem[] => {
     .filter((q) => sections.length === 0 || sections.includes(q.section))
     .flatMap((quiz) =>
       quiz.questions
-        .map((question, i) => ({ key: `${quiz.id}#${i}`, question }))
+        .map((question) => ({ key: `${quiz.id}#${question.id}`, question }))
         .filter(({ question }) => !wanted || question.level === wanted),
     );
   return shuffle(pool).slice(0, count);
@@ -57,7 +57,7 @@ export function ExamPage({ exam }: ExamPageProps) {
           solvedTasks={{}}
           onAnswer={(key, ok) => setAnswers((prev) => ({ ...prev, [key]: ok }))}
           onTaskSolved={() => {}}
-          draftPrefix="exam"
+          draftScope="exam"
         />
       )}
     </div>

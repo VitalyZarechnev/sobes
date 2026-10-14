@@ -1,10 +1,17 @@
 import { quizSources } from '@/shared/content/raw';
-import type { Quiz } from './types';
+import { questionId, taskId } from '../lib/identity';
+import type { Quiz, RawQuiz } from './types';
+
+const normalizeQuiz = (quiz: RawQuiz): Quiz => ({
+  ...quiz,
+  questions: quiz.questions.map((question) => ({ ...question, id: questionId(question) }) as Quiz['questions'][number]),
+  tasks: (quiz.tasks ?? []).map((task) => ({ ...task, id: taskId(task) })),
+});
 
 const evaluate = (source: string): Quiz[] => {
   const registered: Quiz[] = [];
-  const run = new Function('QUIZ', source) as (api: { register: (quiz: Quiz) => void }) => void;
-  run({ register: (quiz) => registered.push({ ...quiz, tasks: quiz.tasks ?? [] }) });
+  const run = new Function('QUIZ', source) as (api: { register: (quiz: RawQuiz) => void }) => void;
+  run({ register: (quiz) => registered.push(normalizeQuiz(quiz)) });
   return registered;
 };
 

@@ -3,3 +3,4 @@ export { LEVELS, LEVEL_LABEL, QUESTION_TYPE_LABEL, DIFFICULTY_LABEL, type Diffic
 export { QUIZZES, getQuiz, quizzesOfSection } from './model/registry';
 export { quizStats, sumQuizStats, type QuizStats } from './model/stats';
 export { LevelBadge } from './ui/LevelBadge';
+export { isLegacyIndexKey } from './lib/identity';

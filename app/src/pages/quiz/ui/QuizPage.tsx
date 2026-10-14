@@ -32,14 +32,14 @@ export function QuizPage({ quizId }: { readonly quizId: string }) {
         </p>
       )}
       <QuizRunner
-        items={quiz.questions.map((question, i) => ({ key: String(i), question }))}
+        items={quiz.questions.map((question) => ({ key: question.id, question }))}
         tasks={quiz.tasks}
         answers={progress?.answers ?? {}}
         solvedTasks={progress?.tasks ?? {}}
         onAnswer={(key, ok) => progressActions.setAnswer(quiz.id, key, ok)}
-        onTaskSolved={(index, solved) => progressActions.setTask(quiz.id, String(index), solved)}
+        onTaskSolved={(taskId, solved) => progressActions.setTask(quiz.id, taskId, solved)}
         onReset={() => progressActions.resetQuiz(quiz.id)}
-        draftPrefix={quiz.id}
+        draftScope={quiz.id}
       />
     </div>
   );

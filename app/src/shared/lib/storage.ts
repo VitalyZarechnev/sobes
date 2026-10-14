@@ -32,3 +32,20 @@ export const writeString = (key: string, value: string): boolean => {
     return false;
   }
 };
+
+export const removeKey = (key: string): boolean => {
+  try {
+    window.localStorage.removeItem(key);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const listKeys = (): string[] => {
+  try {
+    return Object.keys(window.localStorage);
+  } catch {
+    return [];
+  }
+};

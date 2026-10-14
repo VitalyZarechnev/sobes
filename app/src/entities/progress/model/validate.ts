@@ -1,3 +1,4 @@
+import { migrateQuizzesFromV1 } from './migrate';
 import { EMPTY_STATE, type JournalEntry, type ProgressState, type QuizProgress, type ReviewItem } from './types';
 
 type UnknownRecord = Readonly<Record<string, unknown>>;
@@ -40,8 +41,12 @@ const isReviewItem = (value: unknown): value is ReviewItem =>
   typeof value.resolved === 'boolean' &&
   isFiniteNumber(value.createdAt);
 
+const LEGACY_VERSION = 1;
+
+export const isCurrentVersion = (value: unknown): boolean => isRecord(value) && value.version === EMPTY_STATE.version;
+
 export const parseProgressState = (value: unknown): ProgressState | null => {
-  if (!isRecord(value) || value.version !== EMPTY_STATE.version) return null;
+  if (!isRecord(value) || (value.version !== EMPTY_STATE.version && value.version !== LEGACY_VERSION)) return null;
   const quizzes = isRecord(value.quizzes)
     ? Object.fromEntries(
         Object.entries(value.quizzes).flatMap(([id, quiz]) => {
@@ -53,7 +58,7 @@ export const parseProgressState = (value: unknown): ProgressState | null => {
   return {
     version: EMPTY_STATE.version,
     checks: filterRecord(value.checks, isTrue),
-    quizzes,
+    quizzes: value.version === LEGACY_VERSION ? migrateQuizzesFromV1(quizzes) : quizzes,
     journal: Array.isArray(value.journal) ? value.journal.filter(isJournalEntry) : [],
     review: Array.isArray(value.review) ? value.review.filter(isReviewItem) : [],
   };

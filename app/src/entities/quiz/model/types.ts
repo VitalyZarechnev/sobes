@@ -1,6 +1,7 @@
 export type Level = 'middle' | 'senior' | 'lead';
 
 interface BaseQuestion {
+  readonly id: string;
   readonly level: Level;
   readonly q: string;
   readonly code?: string;
@@ -38,6 +39,7 @@ export interface TaskTest {
 }
 
 export interface Task {
+  readonly id: string;
   readonly title: string;
   readonly level: Level;
   readonly prompt: string;
@@ -54,6 +56,16 @@ export interface Task {
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
 export const DIFFICULTY_LABEL: Readonly<Record<Difficulty, string>> = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
+
+type WithOptionalId<T> = T extends unknown ? Omit<T, 'id'> & { readonly id?: string } : never;
+
+export type RawQuestion = WithOptionalId<Question>;
+export type RawTask = WithOptionalId<Task>;
+
+export interface RawQuiz extends Omit<Quiz, 'questions' | 'tasks'> {
+  readonly questions: readonly RawQuestion[];
+  readonly tasks?: readonly RawTask[];
+}
 
 export interface Quiz {
   readonly id: string;

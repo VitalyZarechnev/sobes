@@ -29,6 +29,26 @@ const SECTIONS = [
   { id: '17-debugging-git-team', title: 'Отладка, git, командная работа' },
 ];
 
+const EXPLICIT_ID = /^(?!\d+$)[\w-]+$/;
+
+const identityOf = (item, contentKey) => (item.id === undefined ? `content:${contentKey}` : `id:${item.id}`);
+
+const validateIdentities = (items, contentKey, where) => {
+  const errors = [];
+  const seen = new Map();
+  items.forEach((item, i) => {
+    if (item.id !== undefined && (typeof item.id !== 'string' || !EXPLICIT_ID.test(item.id)))
+      errors.push(`${where}[${i}]: id должен состоять из букв, цифр, _ и - и не быть числом`);
+    const identity = identityOf(item, contentKey(item));
+    if (seen.has(identity)) errors.push(`${where}[${i}]: дублирует ${where}[${seen.get(identity)}] — задайте уникальный id`);
+    else seen.set(identity, i);
+  });
+  return errors;
+};
+
+const questionKey = (q) => [q.type, q.q, q.code ?? ''].join('\u0000');
+const taskKey = (t) => t.title;
+
 const TYPES = new Set(['single', 'multi', 'output', 'order', 'open']);
 const LEVELS = new Set(['middle', 'senior', 'lead']);
 
@@ -143,6 +163,8 @@ for (const file of files) {
   const tasks = quiz.tasks ?? [];
   questions.forEach((q, i) => errors.push(...validateQuestion(q, `${rel} q[${i}]`)));
   tasks.forEach((t, i) => errors.push(...validateTask(t, `${rel} task[${i}]`)));
+  errors.push(...validateIdentities(questions, questionKey, `${rel} q`));
+  errors.push(...validateIdentities(tasks, taskKey, `${rel} task`));
 
   if (RUN_TESTS) {
     for (const [i, task] of tasks.entries()) {

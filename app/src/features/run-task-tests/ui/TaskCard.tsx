@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { LevelBadge, type Task } from '@/entities/quiz';
 import { quizUrlTransform } from '@/entities/content';
 import { CodeBlock, InlineMarkdown } from '@/shared/ui';
-import { readString, writeString } from '@/shared/lib';
+import { readDraft, writeDraft } from '../lib/drafts';
 import { runTests, type TestResult } from '../lib/runTests';
 import { CodeEditor } from './CodeEditor';
 
@@ -17,15 +17,14 @@ interface TaskCardProps {
 export function TaskCard({ task, index, draftKey, solved, onSolvedChange }: TaskCardProps) {
   const lang = task.lang ?? 'js';
   const runnable = lang === 'js' && (task.tests?.length ?? 0) > 0;
-  const storageKey = `fe-interview-wiki:draft:${draftKey}`;
-  const [code, setCode] = useState(() => readString(storageKey) ?? task.starter ?? '');
+  const [code, setCode] = useState(() => readDraft(draftKey) ?? task.starter ?? '');
   const [results, setResults] = useState<TestResult[] | null>(null);
   const [running, setRunning] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
 
   const updateCode = (value: string) => {
     setCode(value);
-    writeString(storageKey, value);
+    writeDraft(draftKey, value);
   };
 
   const run = async () => {
