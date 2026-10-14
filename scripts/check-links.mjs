@@ -28,3 +28,4 @@ for (const file of files) {
 }
 console.log(broken.length ? broken.join('\n') : 'Битых ссылок нет');
 console.log(`\nВсего битых: ${broken.length}`);
+if (broken.length > 0) process.exit(1);
