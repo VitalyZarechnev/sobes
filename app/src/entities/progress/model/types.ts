@@ -25,7 +25,6 @@ export interface ProgressState {
   readonly version: 1;
   readonly checks: Readonly<Record<string, true>>;
   readonly quizzes: Readonly<Record<string, QuizProgress>>;
-  readonly algo: Readonly<Record<string, 'solved' | 'attempted'>>;
   readonly journal: readonly JournalEntry[];
   readonly review: readonly ReviewItem[];
 }
@@ -34,7 +33,6 @@ export const EMPTY_STATE: ProgressState = {
   version: 1,
   checks: {},
   quizzes: {},
-  algo: {},
   journal: [],
   review: [],
 };

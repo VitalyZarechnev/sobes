@@ -1,4 +1,3 @@
-
 export const readJson = <T,>(key: string, fallback: T): T => {
   try {
     const raw = window.localStorage.getItem(key);
@@ -25,9 +24,11 @@ export const readString = (key: string): string | null => {
   }
 };
 
-export const writeString = (key: string, value: string): void => {
+export const writeString = (key: string, value: string): boolean => {
   try {
     window.localStorage.setItem(key, value);
+    return true;
   } catch {
+    return false;
   }
 };

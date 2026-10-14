@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { SaveErrorBanner } from '@/entities/progress';
 import { ThemeToggle } from '@/features/theme-toggle';
 import { Sidebar } from '@/widgets/sidebar';
 import { routes } from '@/shared/config';
@@ -38,6 +39,7 @@ export function App() {
           <ThemeToggle />
         </header>
         <main id="main" ref={mainRef} tabIndex={-1}>
+          <SaveErrorBanner />
           {element}
         </main>
       </div>

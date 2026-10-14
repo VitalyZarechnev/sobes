@@ -1,8 +1,15 @@
 import { useState, type FormEvent } from 'react';
 import { progressActions, useProgressState, type JournalEntry } from '@/entities/progress';
-import { pluralRu } from '@/shared/lib';
+import { parseLocalDateKey, pluralRu, shiftDays, toLocalDateKey } from '@/shared/lib';
 
-const today = (): string => new Date().toISOString().slice(0, 10);
+const MAX_HOURS = 16;
+
+const today = (): string => toLocalDateKey(new Date());
+
+const toHours = (value: string): number => {
+  const hours = Number(value);
+  return Number.isFinite(hours) ? Math.min(MAX_HOURS, Math.max(0, hours)) : 0;
+};
 
 type Draft = Omit<JournalEntry, 'id'> & { id?: string };
 
@@ -10,13 +17,9 @@ const emptyDraft = (): Draft => ({ date: today(), hours: 2, done: '', understood
 
 const streak = (entries: readonly JournalEntry[]): number => {
   const dates = new Set(entries.map((e) => e.date));
+  const start = dates.has(today()) ? new Date() : shiftDays(new Date(), -1);
   let count = 0;
-  const day = new Date();
-  if (!dates.has(day.toISOString().slice(0, 10))) day.setDate(day.getDate() - 1);
-  while (dates.has(day.toISOString().slice(0, 10))) {
-    count += 1;
-    day.setDate(day.getDate() - 1);
-  }
+  while (dates.has(toLocalDateKey(shiftDays(start, -count)))) count += 1;
   return count;
 };
 
@@ -28,18 +31,13 @@ export function JournalPage() {
   const entries = state.journal.toSorted((a, b) => b.date.localeCompare(a.date));
   const hours = entries.reduce((s, e) => s + e.hours, 0);
   const openReview = state.review.filter((r) => !r.resolved);
+  const streakDays = streak(entries);
 
   const save = (event: FormEvent) => {
     event.preventDefault();
     if (!draft.done.trim()) return;
     progressActions.saveJournalEntry(draft);
-    if (draft.struggling.trim()) {
-      draft.struggling
-        .split('\n')
-        .map((line) => line.trim())
-        .filter(Boolean)
-        .forEach((line) => progressActions.addReview(line));
-    }
+    progressActions.addReviews(draft.struggling.split('\n'));
     setDraft(emptyDraft());
   };
 
@@ -51,7 +49,7 @@ export function JournalPage() {
       <div className="stats">
         <div className="stat"><b>{entries.length}</b><span>{pluralRu(entries.length, ['запись', 'записи', 'записей'])}</span></div>
         <div className="stat"><b>{hours} ч</b><span>всего</span></div>
-        <div className="stat"><b>{streak(entries)}</b><span>{pluralRu(streak(entries), ['день', 'дня', 'дней'])} подряд</span></div>
+        <div className="stat"><b>{streakDays}</b><span>{pluralRu(streakDays, ['день', 'дня', 'дней'])} подряд</span></div>
         <div className="stat"><b>{openReview.length}</b><span>тем повторить</span></div>
       </div>
 
@@ -60,7 +58,7 @@ export function JournalPage() {
           <h2>{draft.id ? 'Редактирование записи' : 'Новая запись'}</h2>
           <div className="journal-form__row">
             <label>Дата <input type="date" value={draft.date} onChange={(e) => update('date', e.target.value)} required /></label>
-            <label>Часов <input type="number" min={0} max={16} step={0.5} value={draft.hours} onChange={(e) => update('hours', Number(e.target.value))} /></label>
+            <label>Часов <input type="number" min={0} max={MAX_HOURS} step={0.5} value={draft.hours} onChange={(e) => update('hours', toHours(e.target.value))} /></label>
             <label>
               Самооценка
               <select value={draft.rating} onChange={(e) => update('rating', Number(e.target.value))}>
@@ -83,7 +81,7 @@ export function JournalPage() {
             className="inline-form"
             onSubmit={(e) => {
               e.preventDefault();
-              if (reviewText.trim()) progressActions.addReview(reviewText.trim());
+              progressActions.addReviews([reviewText]);
               setReviewText('');
             }}
           >
@@ -111,7 +109,7 @@ export function JournalPage() {
         {entries.map((entry) => (
           <article key={entry.id} className="card journal-entry">
             <header className="question__head">
-              <strong>{new Date(entry.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'short' })}</strong>
+              <strong>{parseLocalDateKey(entry.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'short' })}</strong>
               <span className="muted">{entry.hours} ч · {'★'.repeat(entry.rating)}</span>
             </header>
             <p><b>Прошёл:</b> {entry.done}</p>

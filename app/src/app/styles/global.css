@@ -107,6 +107,7 @@ h1, h2, h3, h4 { line-height: 1.25; text-wrap: balance; }
 .bad { color: var(--bad); }
 .skip-link { position: absolute; left: -9999px; }
 .skip-link:focus { left: 12px; top: 12px; z-index: 100; background: var(--surface); padding: 8px 12px; border-radius: 8px; }
+.save-error { margin: 0 0 16px; padding: 10px 14px; border: 1px solid var(--bad); border-radius: 8px; background: var(--bad-soft); color: var(--bad); }
 
 .layout { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 100vh; }
 .layout__main { min-width: 0; }
