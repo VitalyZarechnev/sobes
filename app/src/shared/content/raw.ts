@@ -1,4 +1,3 @@
-
 const WIKI_PREFIX = '../../../../';
 
 const rawMarkdown = import.meta.glob<string>(

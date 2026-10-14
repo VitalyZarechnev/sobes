@@ -1,6 +1,6 @@
 import { SECTION_TOPICS, sectionPages, type Section } from '@/entities/content';
 import { pagesCounter, useProgressState } from '@/entities/progress';
-import { quizStats, quizzesOfSection } from '@/entities/quiz';
+import { quizStats, quizzesOfSection, sumQuizStats } from '@/entities/quiz';
 import { routes } from '@/shared/config';
 import { percent } from '@/shared/lib';
 import { ProgressBar } from '@/shared/ui';
@@ -8,14 +8,7 @@ import { ProgressBar } from '@/shared/ui';
 export function SectionCard({ section }: { readonly section: Section }) {
   const state = useProgressState();
   const counter = pagesCounter(sectionPages(section.id), state);
-  const quizzes = quizzesOfSection(section.id);
-  const quiz = quizzes
-    .map((q) => quizStats(q, state.quizzes[q.id]))
-    .reduce((acc, s) => ({ answered: acc.answered + s.answered, correct: acc.correct + s.correct, questions: acc.questions + s.questions }), {
-      answered: 0,
-      correct: 0,
-      questions: 0,
-    });
+  const quiz = sumQuizStats(quizzesOfSection(section.id).map((q) => quizStats(q, state.quizzes[q.id])));
   const value = percent(counter.done, counter.total);
 
   return (

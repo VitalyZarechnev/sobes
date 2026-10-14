@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { AVAILABLE_SECTIONS, contentUrl, getPage, pageHref, PAGES } from '@/entities/content';
 import { pagesCounter, progressActions, readLastPage, useProgressState } from '@/entities/progress';
-import { QUIZZES, quizStats } from '@/entities/quiz';
+import { QUIZZES, quizStats, sumQuizStats } from '@/entities/quiz';
 import { ProgressBackup } from '@/features/progress-backup';
 import { SectionCard } from '@/widgets/section-card';
 import { routes } from '@/shared/config';
@@ -14,12 +14,7 @@ export function HomePage() {
   const days = useMemo(parseRoadmapDays, []);
   const sectionPagesAll = [...PAGES.values()].filter((p) => p.sectionId);
   const checklist = pagesCounter(sectionPagesAll, state);
-  const quizTotals = [...QUIZZES.values()]
-    .map((q) => quizStats(q, state.quizzes[q.id]))
-    .reduce(
-      (acc, s) => ({ answered: acc.answered + s.answered, correct: acc.correct + s.correct, questions: acc.questions + s.questions, solved: acc.solved + s.solved, tasks: acc.tasks + s.tasks }),
-      { answered: 0, correct: 0, questions: 0, solved: 0, tasks: 0 },
-    );
+  const quizTotals = sumQuizStats([...QUIZZES.values()].map((q) => quizStats(q, state.quizzes[q.id])));
   const daysDone = days.filter((d) => d.items.length > 0 && d.items.every((i) => state.checks[i.key])).length;
   const currentDay = days.find((d) => d.items.some((i) => !state.checks[i.key]));
   const hours = state.journal.reduce((sum, e) => sum + e.hours, 0);

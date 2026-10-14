@@ -1,4 +1,4 @@
-import { checklistKey, getPage } from '@/entities/content';
+import { CHECKBOX_LINE, checklistKey, getPage } from '@/entities/content';
 
 export interface RoadmapDay {
   readonly title: string;
@@ -15,7 +15,7 @@ export const parseRoadmapDays = (): RoadmapDay[] => {
       days.push({ title: heading[1], items: [] });
       continue;
     }
-    const item = /^\s*[-*]\s+\[[ xX]\]\s+(.+)$/.exec(line);
+    const item = CHECKBOX_LINE.exec(line);
     const current = days.at(-1);
     if (item?.[1] && current) current.items.push({ key: checklistKey('ROADMAP', item[1]), text: item[1] });
   }

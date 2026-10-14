@@ -1,7 +1,7 @@
 import { normalizeKey, stripMarkdown } from '@/shared/lib';
 import type { ChecklistItem } from '../model/types';
 
-const CHECKBOX_LINE = /^\s*[-*]\s+\[[ xX]\]\s+(.+)$/;
+export const CHECKBOX_LINE = /^\s*[-*]\s+\[[ xX]\]\s+(.+)$/;
 const CODE_FENCE = /^\s*```/;
 
 export const checklistKey = (pageId: string, text: string): string => `${pageId}::${normalizeKey(text)}`;

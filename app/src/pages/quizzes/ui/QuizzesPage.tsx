@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AVAILABLE_SECTIONS } from '@/entities/content';
 import { useProgressState } from '@/entities/progress';
-import { QUIZZES, quizStats, quizzesOfSection, type Level } from '@/entities/quiz';
+import { QUIZZES, quizStats, quizzesOfSection, sumQuizStats, type Level } from '@/entities/quiz';
 import { EXAM_COUNT, routes } from '@/shared/config';
 import { navigate, percent } from '@/shared/lib';
 import { ProgressBar } from '@/shared/ui';
@@ -13,15 +13,7 @@ export function QuizzesPage() {
   const [level, setLevel] = useState<Level | 'all'>('all');
   const [count, setCount] = useState<number>(EXAM_COUNT.fallback);
 
-  const totals = [...QUIZZES.values()]
-    .map((q) => quizStats(q, state.quizzes[q.id]))
-    .reduce((a, s) => ({ answered: a.answered + s.answered, correct: a.correct + s.correct, questions: a.questions + s.questions, solved: a.solved + s.solved, tasks: a.tasks + s.tasks }), {
-      answered: 0,
-      correct: 0,
-      questions: 0,
-      solved: 0,
-      tasks: 0,
-    });
+  const totals = sumQuizStats([...QUIZZES.values()].map((q) => quizStats(q, state.quizzes[q.id])));
 
   const startExam = () =>
     navigate(routes.exam({ sections: chosen, level, count, seed: String(Date.now()) }));

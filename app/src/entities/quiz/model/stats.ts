@@ -25,3 +25,17 @@ export const quizStats = (quiz: Quiz, progress: QuizProgressLike | undefined): Q
     tasks: quiz.tasks.length,
   };
 };
+
+const ZERO_STATS: QuizStats = { answered: 0, correct: 0, questions: 0, solved: 0, tasks: 0 };
+
+export const sumQuizStats = (stats: readonly QuizStats[]): QuizStats =>
+  stats.reduce(
+    (acc, s) => ({
+      answered: acc.answered + s.answered,
+      correct: acc.correct + s.correct,
+      questions: acc.questions + s.questions,
+      solved: acc.solved + s.solved,
+      tasks: acc.tasks + s.tasks,
+    }),
+    ZERO_STATS,
+  );
