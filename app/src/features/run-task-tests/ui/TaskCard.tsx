@@ -30,7 +30,7 @@ export function TaskCard({ task, index, draftKey, solved, onSolvedChange }: Task
 
   const run = async () => {
     setRunning(true);
-    const res = await runTests(code, task.tests ?? []);
+    const res = await runTests(code, task.tests ?? [], task.env === 'browser' ? 'browser' : 'worker');
     setResults(res);
     setRunning(false);
     if (res.every((r) => r.passed)) onSolvedChange(true);
@@ -52,8 +52,8 @@ export function TaskCard({ task, index, draftKey, solved, onSolvedChange }: Task
       {(runnable || task.starter !== undefined) && <CodeEditor value={code} onChange={updateCode} label={`Решение задачи ${task.title}`} />}
       {results && (
         <ul className="test-results" aria-live="polite">
-          {results.map((r) => (
-            <li key={r.name} className={r.passed ? 'ok' : 'bad'}>
+          {results.map((r, i) => (
+            <li key={i} className={r.passed ? 'ok' : 'bad'}>
               {r.passed ? '✓' : '✗'} {r.name}
               {r.error && <span className="test-results__error">{r.error}</span>}
             </li>
