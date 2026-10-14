@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { AVAILABLE_SECTIONS } from '@/entities/content';
 import { useProgressState } from '@/entities/progress';
 import { QUIZZES, quizStats, quizzesOfSection, sumQuizStats, type Level } from '@/entities/quiz';
-import { EXAM_COUNT, routes } from '@/shared/config';
+import { clampExamCount, EXAM_COUNT, routes } from '@/shared/config';
 import { navigate, percent } from '@/shared/lib';
 import { ProgressBar } from '@/shared/ui';
 
@@ -11,7 +11,8 @@ export function QuizzesPage() {
   const sectionsWithQuizzes = AVAILABLE_SECTIONS.filter((s) => quizzesOfSection(s.id).length > 0);
   const [chosen, setChosen] = useState<string[]>(() => sectionsWithQuizzes.map((s) => s.id));
   const [level, setLevel] = useState<Level | 'all'>('all');
-  const [count, setCount] = useState<number>(EXAM_COUNT.fallback);
+  const [countInput, setCountInput] = useState<string>(String(EXAM_COUNT.fallback));
+  const count = Number(countInput) || EXAM_COUNT.fallback;
 
   const totals = sumQuizStats([...QUIZZES.values()].map((q) => quizStats(q, state.quizzes[q.id])));
 
@@ -57,7 +58,7 @@ export function QuizzesPage() {
           </label>
           <label>
             Вопросов{' '}
-            <input type="number" min={EXAM_COUNT.min} max={EXAM_COUNT.max} value={count} onChange={(e) => setCount(Number(e.target.value) || EXAM_COUNT.fallback)} />
+            <input type="number" min={EXAM_COUNT.min} max={EXAM_COUNT.max} value={countInput} onChange={(e) => setCountInput(e.target.value)} onBlur={() => setCountInput(String(clampExamCount(count)))} />
           </label>
           <button className="btn btn--primary" disabled={chosen.length === 0} onClick={startExam}>
             Начать экзамен

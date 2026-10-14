@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react';
 import { progressActions } from '@/entities/progress';
 
+const REVOKE_DELAY_MS = 1000;
+
 export function ProgressBackup() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -12,7 +14,7 @@ export function ProgressBackup() {
     link.href = url;
     link.download = `interview-progress-${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), REVOKE_DELAY_MS);
     setMessage('Файл с прогрессом сохранён');
   };
 

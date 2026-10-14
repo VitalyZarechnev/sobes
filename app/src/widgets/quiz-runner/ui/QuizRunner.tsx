@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { LEVEL_LABEL, LEVELS, type Level, type Question, type Task } from '@/entities/quiz';
 import { QuestionCard } from '@/features/answer-question';
 import { draftKey, TaskCard } from '@/features/run-task-tests';
@@ -22,9 +22,27 @@ interface QuizRunnerProps {
 
 type Tab = 'questions' | 'tasks';
 
+const TABS: readonly Tab[] = ['questions', 'tasks'];
+
 export function QuizRunner({ items, tasks, answers, solvedTasks, onAnswer, onTaskSolved, onReset, draftScope }: QuizRunnerProps) {
   const [level, setLevel] = useState<Level | 'all'>('all');
   const [tab, setTab] = useState<Tab>(items.length > 0 ? 'questions' : 'tasks');
+  const tabsId = useId();
+  const tabRefs = useRef<Partial<Record<Tab, HTMLButtonElement | null>>>({});
+  const hasTabs = items.length > 0 && tasks.length > 0;
+  const tabId = (t: Tab) => `${tabsId}-${t}-tab`;
+  const panelId = `${tabsId}-panel`;
+
+  const onTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
+    const target = event.key === 'Home' ? TABS[0] : event.key === 'End' ? TABS.at(-1) : step ? TABS[(TABS.indexOf(tab) + step + TABS.length) % TABS.length] : undefined;
+    if (!target) return;
+    event.preventDefault();
+    setTab(target);
+    tabRefs.current[target]?.focus();
+  };
+
+  const tabLabel = (t: Tab) => (t === 'questions' ? `Вопросы (${visibleItems.length})` : `Задачи (${visibleTasks.length})`);
 
   const levels = useMemo(
     () => LEVELS.filter((l) => items.some((i) => i.question.level === l) || tasks.some((t) => t.level === l)),
@@ -64,41 +82,55 @@ export function QuizRunner({ items, tasks, answers, solvedTasks, onAnswer, onTas
         )}
       </div>
 
-      {items.length > 0 && tasks.length > 0 && (
-        <div className="tabs" role="tablist">
-          <button role="tab" aria-selected={tab === 'questions'} className={`tab ${tab === 'questions' ? 'tab--active' : ''}`} onClick={() => setTab('questions')}>
-            Вопросы ({visibleItems.length})
-          </button>
-          <button role="tab" aria-selected={tab === 'tasks'} className={`tab ${tab === 'tasks' ? 'tab--active' : ''}`} onClick={() => setTab('tasks')}>
-            Задачи ({visibleTasks.length})
-          </button>
+      {hasTabs && (
+        <div className="tabs" role="tablist" aria-label="Содержимое теста">
+          {TABS.map((t) => (
+            <button
+              key={t}
+              ref={(el) => {
+                tabRefs.current[t] = el;
+              }}
+              id={tabId(t)}
+              role="tab"
+              aria-selected={tab === t}
+              aria-controls={panelId}
+              tabIndex={tab === t ? 0 : -1}
+              className={`tab ${tab === t ? 'tab--active' : ''}`}
+              onClick={() => setTab(t)}
+              onKeyDown={onTabKeyDown}
+            >
+              {tabLabel(t)}
+            </button>
+          ))}
         </div>
       )}
 
-      {tab === 'questions' &&
-        visibleItems.map((item, i) => (
-          <QuestionCard
-            key={item.key}
-            question={item.question}
-            index={i}
-            result={answers[item.key]}
-            onAnswer={(ok) => onAnswer(item.key, ok)}
-          />
-        ))}
+      <div {...(hasTabs ? { id: panelId, role: 'tabpanel', 'aria-labelledby': tabId(tab) } : {})}>
+        {tab === 'questions' &&
+          visibleItems.map((item, i) => (
+            <QuestionCard
+              key={item.key}
+              question={item.question}
+              index={i}
+              result={answers[item.key]}
+              onAnswer={(ok) => onAnswer(item.key, ok)}
+            />
+          ))}
 
-      {tab === 'tasks' &&
-        visibleTasks.map(({ task, index }) => (
-          <TaskCard
-            key={task.id}
-            task={task}
-            index={index}
-            draftKey={draftKey(draftScope, task.id)}
-            solved={Boolean(solvedTasks[task.id])}
-            onSolvedChange={(value) => onTaskSolved(task.id, value)}
-          />
-        ))}
+        {tab === 'tasks' &&
+          visibleTasks.map(({ task, index }) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              index={index}
+              draftKey={draftKey(draftScope, task.id)}
+              solved={Boolean(solvedTasks[task.id])}
+              onSolvedChange={(value) => onTaskSolved(task.id, value)}
+            />
+          ))}
 
-      {tab === 'questions' && visibleItems.length === 0 && <p className="muted">Нет вопросов выбранного уровня.</p>}
+        {tab === 'questions' && visibleItems.length === 0 && <p className="muted">Нет вопросов выбранного уровня.</p>}
+      </div>
     </div>
   );
 }

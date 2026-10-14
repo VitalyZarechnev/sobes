@@ -1,1 +1,1 @@
-export { PATHS, routes, parseExamQuery, EXAM_COUNT, type ExamQuery } from './routes';
+export { PATHS, routes, parseExamQuery, clampExamCount, EXAM_COUNT, type ExamQuery } from './routes';
