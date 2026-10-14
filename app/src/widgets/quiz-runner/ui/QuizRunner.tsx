@@ -48,12 +48,13 @@ export function QuizRunner({ items, tasks, answers, solvedTasks, onAnswer, onTas
     () => LEVELS.filter((l) => items.some((i) => i.question.level === l) || tasks.some((t) => t.level === l)),
     [items, tasks],
   );
-  const visibleItems = items.filter((i) => level === 'all' || i.question.level === level);
-  const visibleTasks = tasks.map((task, index) => ({ task, index })).filter(({ task }) => level === 'all' || task.level === level);
+  const matchesLevel = (itemLevel: Level) => level === 'all' || itemLevel === level;
+  const visibleItems = items.map((item, index) => ({ ...item, index })).filter((i) => matchesLevel(i.question.level));
+  const visibleTasks = tasks.map((task, index) => ({ task, index })).filter(({ task }) => matchesLevel(task.level));
 
   const answered = visibleItems.filter((i) => i.key in answers);
   const correct = answered.filter((i) => answers[i.key]).length;
-  const solved = tasks.filter((t) => solvedTasks[t.id]).length;
+  const solved = visibleTasks.filter(({ task }) => solvedTasks[task.id]).length;
 
   return (
     <div className="quiz">
@@ -69,7 +70,7 @@ export function QuizRunner({ items, tasks, answers, solvedTasks, onAnswer, onTas
           <ProgressBar done={answered.length} total={visibleItems.length} label="Отвечено вопросов" />
           <span className="muted">
             Отвечено {answered.length}/{visibleItems.length} · верно {correct}
-            {tasks.length > 0 && ` · задачи ${solved}/${tasks.length}`}
+            {visibleTasks.length > 0 && ` · задачи ${solved}/${visibleTasks.length}`}
           </span>
         </div>
         {onReset && (
@@ -107,11 +108,11 @@ export function QuizRunner({ items, tasks, answers, solvedTasks, onAnswer, onTas
 
       <div {...(hasTabs ? { id: panelId, role: 'tabpanel', 'aria-labelledby': tabId(tab) } : {})}>
         {tab === 'questions' &&
-          visibleItems.map((item, i) => (
+          visibleItems.map((item) => (
             <QuestionCard
               key={item.key}
               question={item.question}
-              index={i}
+              index={item.index}
               result={answers[item.key]}
               onAnswer={(ok) => onAnswer(item.key, ok)}
             />
