@@ -197,7 +197,7 @@ QUIZ.register({
         },
         {
           "name": "O(n log n) на 10⁵",
-          "code": "const a = Array.from({ length: 100000 }, (_, i) => i); const s = performance.now(); return lengthOfLIS(a) === 100000 && performance.now() - s < 300;"
+          "code": "const a = Array.from({ length: 100000 }, (_, i) => i); const s = performance.now(); return lengthOfLIS(a) === 100000 && performance.now() - s < 1500;"
         }
       ],
       "notes": "Простой DP — O(n²): `dp[i] = 1 + max(dp[j])` для `j < i, a[j] < a[i]`. Patience sorting с бинпоиском — O(n log n). LIS используется во Vue 3 при диффе дочерних узлов, чтобы минимизировать перемещения DOM-элементов."

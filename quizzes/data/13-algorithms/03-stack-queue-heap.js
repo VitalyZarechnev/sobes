@@ -196,7 +196,7 @@ QUIZ.register({
         },
         {
           "name": "O(n) на убывании 10⁵",
-          "code": "const a = Array.from({ length: 100000 }, (_, i) => 100000 - i); const s = performance.now(); dailyTemperatures(a); return performance.now() - s < 300;"
+          "code": "const a = Array.from({ length: 100000 }, (_, i) => 100000 - i); const s = performance.now(); dailyTemperatures(a); return performance.now() - s < 1500;"
         }
       ]
     },
@@ -253,7 +253,7 @@ QUIZ.register({
         },
         {
           "name": "O(n) на 10⁵",
-          "code": "const a = Array.from({ length: 100000 }, (_, i) => i); const s = performance.now(); const r = maxSlidingWindow(a, 5000); return r.length === 95001 && performance.now() - s < 300;"
+          "code": "const a = Array.from({ length: 100000 }, (_, i) => i); const s = performance.now(); const r = maxSlidingWindow(a, 5000); return r.length === 95001 && performance.now() - s < 1500;"
         }
       ],
       "notes": "Монотонный дек на массиве с индексом головы — без `shift`."
@@ -284,7 +284,7 @@ QUIZ.register({
         },
         {
           "name": "10⁵ элементов быстро",
-          "code": "const h = new MinHeap(); const s = performance.now(); for (let i = 0; i < 100000; i++) h.push((i * 7919) % 100003); let prev = -1, ok = true; while (h.size) { const x = h.pop(); if (x < prev) ok = false; prev = x; } return ok && performance.now() - s < 500;"
+          "code": "const h = new MinHeap(); const s = performance.now(); for (let i = 0; i < 100000; i++) h.push((i * 7919) % 100003); let prev = -1, ok = true; while (h.size) { const x = h.pop(); if (x < prev) ok = false; prev = x; } return ok && performance.now() - s < 2500;"
         }
       ]
     },

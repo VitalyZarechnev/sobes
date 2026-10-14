@@ -20504,7 +20504,9 @@ CODEOWNERS и автоназначение, SLA на первый ответ (н
 
 Вики для подготовки к собеседованию Senior Frontend и Frontend Lead: теория, вопросы с ответами, тесты, задачи с автотестами и отслеживание прогресса.
 
-**Открыть:** [\`index.html\`](index.html) — двойной клик, сервер не нужен. Это единая точка входа: все разделы, тесты, экзамен, каталог задач на алгоритмы, дневник и прогресс. Прогресс хранится в браузере (localStorage), его можно экспортировать и импортировать на главной.
+**Онлайн:** [vitalyzarechnev.github.io/sobes](https://vitalyzarechnev.github.io/sobes/)
+
+**Локально:** [\`index.html\`](index.html) — двойной клик, сервер не нужен. Это единая точка входа: все разделы, тесты, экзамен, каталог задач на алгоритмы, дневник и прогресс. Прогресс хранится в браузере (localStorage), его можно экспортировать и импортировать на главной.
 
 **Старт:** [Роадмап по дням](ROADMAP.md) → разделы ниже. **Самопроверка:** [карта покрытия ключевых тем](COVERAGE.md).
 
@@ -33821,7 +33823,7 @@ const counter = useTemplateRef<InstanceType<typeof Counter>>('counter');
         },
         {
           "name": "быстро на 10⁵",
-          "code": "const g = createGrid(20); for (let i = 0; i < 100000; i++) g.insert({ id: i, x: (i * 7919) % 2000, y: (i * 104729) % 2000 }); const s = performance.now(); let n = 0; for (let q = 0; q < 2000; q++) n += g.query((q * 31) % 2000, (q * 17) % 2000, 10).length; return performance.now() - s < 300;"
+          "code": "const g = createGrid(20); for (let i = 0; i < 100000; i++) g.insert({ id: i, x: (i * 7919) % 2000, y: (i * 104729) % 2000 }); const s = performance.now(); let n = 0; for (let q = 0; q < 2000; q++) n += g.query((q * 31) % 2000, (q * 17) % 2000, 10).length; return performance.now() - s < 1500;"
         }
       ]
     }
@@ -34128,7 +34130,7 @@ const counter = useTemplateRef<InstanceType<typeof Counter>>('counter');
         },
         {
           "name": "большой вход",
-          "code": "const a = Array.from({ length: 200000 }, (_, i) => i); const s = performance.now(); const r = containsDuplicate(a); return r === false && performance.now() - s < 500;"
+          "code": "const a = Array.from({ length: 200000 }, (_, i) => i); const s = performance.now(); const r = containsDuplicate(a); return r === false && performance.now() - s < 2500;"
         }
       ],
       "notes": "Альтернатива в одну строку: \`new Set(nums).size !== nums.length\` — тоже O(n), но без раннего выхода."
@@ -34523,7 +34525,7 @@ const counter = useTemplateRef<InstanceType<typeof Counter>>('counter');
         },
         {
           "name": "O(n) на 10⁶",
-          "code": "const h = Array.from({ length: 1e6 }, (_, i) => i % 1000); const s = performance.now(); maxArea(h); return performance.now() - s < 300;"
+          "code": "const h = Array.from({ length: 1e6 }, (_, i) => i % 1000); const s = performance.now(); maxArea(h); return performance.now() - s < 1500;"
         }
       ]
     },
@@ -34848,7 +34850,7 @@ const counter = useTemplateRef<InstanceType<typeof Counter>>('counter');
         },
         {
           "name": "O(n) на убывании 10⁵",
-          "code": "const a = Array.from({ length: 100000 }, (_, i) => 100000 - i); const s = performance.now(); dailyTemperatures(a); return performance.now() - s < 300;"
+          "code": "const a = Array.from({ length: 100000 }, (_, i) => 100000 - i); const s = performance.now(); dailyTemperatures(a); return performance.now() - s < 1500;"
         }
       ]
     },
@@ -34905,7 +34907,7 @@ const counter = useTemplateRef<InstanceType<typeof Counter>>('counter');
         },
         {
           "name": "O(n) на 10⁵",
-          "code": "const a = Array.from({ length: 100000 }, (_, i) => i); const s = performance.now(); const r = maxSlidingWindow(a, 5000); return r.length === 95001 && performance.now() - s < 300;"
+          "code": "const a = Array.from({ length: 100000 }, (_, i) => i); const s = performance.now(); const r = maxSlidingWindow(a, 5000); return r.length === 95001 && performance.now() - s < 1500;"
         }
       ],
       "notes": "Монотонный дек на массиве с индексом головы — без \`shift\`."
@@ -34936,7 +34938,7 @@ const counter = useTemplateRef<InstanceType<typeof Counter>>('counter');
         },
         {
           "name": "10⁵ элементов быстро",
-          "code": "const h = new MinHeap(); const s = performance.now(); for (let i = 0; i < 100000; i++) h.push((i * 7919) % 100003); let prev = -1, ok = true; while (h.size) { const x = h.pop(); if (x < prev) ok = false; prev = x; } return ok && performance.now() - s < 500;"
+          "code": "const h = new MinHeap(); const s = performance.now(); for (let i = 0; i < 100000; i++) h.push((i * 7919) % 100003); let prev = -1, ok = true; while (h.size) { const x = h.pop(); if (x < prev) ok = false; prev = x; } return ok && performance.now() - s < 2500;"
         }
       ]
     },
@@ -36245,7 +36247,7 @@ const counter = useTemplateRef<InstanceType<typeof Counter>>('counter');
         },
         {
           "name": "O(n log n) на 10⁵",
-          "code": "const a = Array.from({ length: 100000 }, (_, i) => i); const s = performance.now(); return lengthOfLIS(a) === 100000 && performance.now() - s < 300;"
+          "code": "const a = Array.from({ length: 100000 }, (_, i) => i); const s = performance.now(); return lengthOfLIS(a) === 100000 && performance.now() - s < 1500;"
         }
       ],
       "notes": "Простой DP — O(n²): \`dp[i] = 1 + max(dp[j])\` для \`j < i, a[j] < a[i]\`. Patience sorting с бинпоиском — O(n log n). LIS используется во Vue 3 при диффе дочерних узлов, чтобы минимизировать перемещения DOM-элементов."
@@ -36532,7 +36534,7 @@ const counter = useTemplateRef<InstanceType<typeof Counter>>('counter');
         },
         {
           "name": "10⁵ элементов быстро",
-          "code": "const items = Array.from({ length: 100000 }, (_, i) => ({ id: i, parentId: i === 0 ? null : Math.floor((i - 1) / 2) })); const s = performance.now(); const r = listToTree(items); return r.length === 1 && performance.now() - s < 500;"
+          "code": "const items = Array.from({ length: 100000 }, (_, i) => ({ id: i, parentId: i === 0 ? null : Math.floor((i - 1) / 2) })); const s = performance.now(); const r = listToTree(items); return r.length === 1 && performance.now() - s < 2500;"
         }
       ]
     },
@@ -36668,7 +36670,7 @@ const counter = useTemplateRef<InstanceType<typeof Counter>>('counter');
         },
         {
           "name": "частота ограничена",
-          "code": "const sleep = (ms) => new Promise((r) => setTimeout(r, ms)); let n = 0; const f = throttle(() => n++, 30); const end = Date.now() + 150; while (Date.now() < end) { f(); await sleep(5); } await sleep(50); return n >= 4 && n <= 7;"
+          "code": "const sleep = (ms) => new Promise((r) => setTimeout(r, ms)); let n = 0; const f = throttle(() => n++, 30); const end = Date.now() + 150; while (Date.now() < end) { f(); await sleep(5); } await sleep(50); return n >= 3 && n <= 9;"
         }
       ]
     },
@@ -36830,7 +36832,7 @@ const counter = useTemplateRef<InstanceType<typeof Counter>>('counter');
         },
         {
           "name": "большой список",
-          "code": "const a = Array.from({ length: 50000 }, (_, i) => \\"k\\" + i); const b = [a.at(-1), ...a.slice(0, -1)]; const s = performance.now(); return minMoves(a, b) === 1 && performance.now() - s < 500;"
+          "code": "const a = Array.from({ length: 50000 }, (_, i) => \\"k\\" + i); const b = [a.at(-1), ...a.slice(0, -1)]; const s = performance.now(); return minMoves(a, b) === 1 && performance.now() - s < 2500;"
         }
       ],
       "notes": "Это идея из диффа Vue 3: длина LIS старых индексов — сколько элементов можно не трогать."

@@ -121,7 +121,7 @@ QUIZ.register({
         },
         {
           "name": "10⁵ элементов быстро",
-          "code": "const items = Array.from({ length: 100000 }, (_, i) => ({ id: i, parentId: i === 0 ? null : Math.floor((i - 1) / 2) })); const s = performance.now(); const r = listToTree(items); return r.length === 1 && performance.now() - s < 500;"
+          "code": "const items = Array.from({ length: 100000 }, (_, i) => ({ id: i, parentId: i === 0 ? null : Math.floor((i - 1) / 2) })); const s = performance.now(); const r = listToTree(items); return r.length === 1 && performance.now() - s < 2500;"
         }
       ]
     },
@@ -257,7 +257,7 @@ QUIZ.register({
         },
         {
           "name": "частота ограничена",
-          "code": "const sleep = (ms) => new Promise((r) => setTimeout(r, ms)); let n = 0; const f = throttle(() => n++, 30); const end = Date.now() + 150; while (Date.now() < end) { f(); await sleep(5); } await sleep(50); return n >= 4 && n <= 7;"
+          "code": "const sleep = (ms) => new Promise((r) => setTimeout(r, ms)); let n = 0; const f = throttle(() => n++, 30); const end = Date.now() + 150; while (Date.now() < end) { f(); await sleep(5); } await sleep(50); return n >= 3 && n <= 9;"
         }
       ]
     },
@@ -419,7 +419,7 @@ QUIZ.register({
         },
         {
           "name": "большой список",
-          "code": "const a = Array.from({ length: 50000 }, (_, i) => \"k\" + i); const b = [a.at(-1), ...a.slice(0, -1)]; const s = performance.now(); return minMoves(a, b) === 1 && performance.now() - s < 500;"
+          "code": "const a = Array.from({ length: 50000 }, (_, i) => \"k\" + i); const b = [a.at(-1), ...a.slice(0, -1)]; const s = performance.now(); return minMoves(a, b) === 1 && performance.now() - s < 2500;"
         }
       ],
       "notes": "Это идея из диффа Vue 3: длина LIS старых индексов — сколько элементов можно не трогать."

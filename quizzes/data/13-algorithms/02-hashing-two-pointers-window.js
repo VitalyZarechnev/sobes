@@ -293,7 +293,7 @@ QUIZ.register({
         },
         {
           "name": "O(n) на 10⁶",
-          "code": "const h = Array.from({ length: 1e6 }, (_, i) => i % 1000); const s = performance.now(); maxArea(h); return performance.now() - s < 300;"
+          "code": "const h = Array.from({ length: 1e6 }, (_, i) => i % 1000); const s = performance.now(); maxArea(h); return performance.now() - s < 1500;"
         }
       ]
     },

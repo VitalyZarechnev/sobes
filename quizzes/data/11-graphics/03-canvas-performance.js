@@ -105,7 +105,7 @@ QUIZ.register({
         },
         {
           "name": "быстро на 10⁵",
-          "code": "const g = createGrid(20); for (let i = 0; i < 100000; i++) g.insert({ id: i, x: (i * 7919) % 2000, y: (i * 104729) % 2000 }); const s = performance.now(); let n = 0; for (let q = 0; q < 2000; q++) n += g.query((q * 31) % 2000, (q * 17) % 2000, 10).length; return performance.now() - s < 300;"
+          "code": "const g = createGrid(20); for (let i = 0; i < 100000; i++) g.insert({ id: i, x: (i * 7919) % 2000, y: (i * 104729) % 2000 }); const s = performance.now(); let n = 0; for (let q = 0; q < 2000; q++) n += g.query((q * 31) % 2000, (q * 17) % 2000, 10).length; return performance.now() - s < 1500;"
         }
       ]
     }

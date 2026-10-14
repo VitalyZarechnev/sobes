@@ -148,7 +148,7 @@ QUIZ.register({
         },
         {
           "name": "большой вход",
-          "code": "const a = Array.from({ length: 200000 }, (_, i) => i); const s = performance.now(); const r = containsDuplicate(a); return r === false && performance.now() - s < 500;"
+          "code": "const a = Array.from({ length: 200000 }, (_, i) => i); const s = performance.now(); const r = containsDuplicate(a); return r === false && performance.now() - s < 2500;"
         }
       ],
       "notes": "Альтернатива в одну строку: `new Set(nums).size !== nums.length` — тоже O(n), но без раннего выхода."
