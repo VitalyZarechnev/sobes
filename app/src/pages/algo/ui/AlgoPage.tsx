@@ -3,6 +3,7 @@ import { pageHref } from '@/entities/content';
 import { progressActions, useProgressState } from '@/entities/progress';
 import { DIFFICULTY_LABEL, quizzesOfSection, type Difficulty, type Task } from '@/entities/quiz';
 import { TaskCard } from '@/features/run-task-tests';
+import { routes } from '@/shared/config';
 import { percent } from '@/shared/lib';
 import { ProgressBar } from '@/shared/ui';
 
@@ -37,7 +38,7 @@ export function AlgoPage({ problemKey }: { readonly problemKey: string | null })
   if (selected) {
     return (
       <div className="page">
-        <nav className="breadcrumbs"><a href="#/algo">Задачи на алгоритмы</a><span aria-hidden="true">›</span><span>{selected.task.title}</span></nav>
+        <nav className="breadcrumbs"><a href={routes.algo()}>Задачи на алгоритмы</a><span aria-hidden="true">›</span><span>{selected.task.title}</span></nav>
         <TaskCard
           task={selected.task}
           index={selected.index}
@@ -108,7 +109,7 @@ export function AlgoPage({ problemKey }: { readonly problemKey: string | null })
               {visible.map((p) => (
                 <tr key={`${p.quizId}:${p.index}`}>
                   <td>{isSolved(p) ? '✅' : '⬜'}</td>
-                  <td><a href={`#/algo?problem=${encodeURIComponent(`${p.quizId}:${p.index}`)}`}>{p.task.title}</a></td>
+                  <td><a href={routes.algo(`${p.quizId}:${p.index}`)}>{p.task.title}</a></td>
                   <td><span className={`difficulty difficulty--${p.task.difficulty ?? 'easy'}`}>{DIFFICULTY_LABEL[p.task.difficulty ?? 'easy']}</span></td>
                   <td className="muted">{p.task.tags?.join(', ')}</td>
                 </tr>

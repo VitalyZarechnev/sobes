@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { AVAILABLE_SECTIONS, quizHref } from '@/entities/content';
+import { AVAILABLE_SECTIONS } from '@/entities/content';
 import { useProgressState } from '@/entities/progress';
 import { QUIZZES, quizStats, quizzesOfSection, type Level } from '@/entities/quiz';
+import { EXAM_COUNT, routes } from '@/shared/config';
 import { navigate, percent } from '@/shared/lib';
 import { ProgressBar } from '@/shared/ui';
 
@@ -10,7 +11,7 @@ export function QuizzesPage() {
   const sectionsWithQuizzes = AVAILABLE_SECTIONS.filter((s) => quizzesOfSection(s.id).length > 0);
   const [chosen, setChosen] = useState<string[]>(() => sectionsWithQuizzes.map((s) => s.id));
   const [level, setLevel] = useState<Level | 'all'>('all');
-  const [count, setCount] = useState(20);
+  const [count, setCount] = useState<number>(EXAM_COUNT.fallback);
 
   const totals = [...QUIZZES.values()]
     .map((q) => quizStats(q, state.quizzes[q.id]))
@@ -23,7 +24,7 @@ export function QuizzesPage() {
     });
 
   const startExam = () =>
-    navigate('/exam', { sections: chosen.join(','), level, n: String(count), seed: String(Date.now()) });
+    navigate(routes.exam({ sections: chosen, level, count, seed: String(Date.now()) }));
 
   return (
     <div className="page">
@@ -64,7 +65,7 @@ export function QuizzesPage() {
           </label>
           <label>
             Вопросов{' '}
-            <input type="number" min={5} max={100} value={count} onChange={(e) => setCount(Number(e.target.value) || 20)} />
+            <input type="number" min={EXAM_COUNT.min} max={EXAM_COUNT.max} value={count} onChange={(e) => setCount(Number(e.target.value) || EXAM_COUNT.fallback)} />
           </label>
           <button className="btn btn--primary" disabled={chosen.length === 0} onClick={startExam}>
             Начать экзамен
@@ -82,7 +83,7 @@ export function QuizzesPage() {
               const s = quizStats(quiz, state.quizzes[quiz.id]);
               return (
                 <li key={quiz.id}>
-                  <a href={quizHref(quiz.id)}>{quiz.title}</a>
+                  <a href={routes.quiz(quiz.id)}>{quiz.title}</a>
                   <span className="muted">
                     {s.answered > 0 ? `${s.correct}/${s.answered} верно` : 'не начат'} · {s.questions} вопросов
                     {s.tasks > 0 && ` · задачи ${s.solved}/${s.tasks}`}

@@ -1,20 +1,32 @@
-import { useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
 import { ThemeToggle } from '@/features/theme-toggle';
 import { Sidebar } from '@/widgets/sidebar';
-import { buildHref, useRoute } from '@/shared/lib';
-import { Router } from './Router';
+import { routes } from '@/shared/config';
+import { useRoute } from '@/shared/lib';
+import { resolveRoute } from '../routing/routeTable';
+import { useDocumentTitle, useNavigationFocus } from '../routing/useNavigationEffects';
 
 export function App() {
   const route = useRoute();
+  const mainRef = useRef<HTMLElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { element, title } = resolveRoute(route);
 
-  useEffect(() => {
-    if (route.path === '/') document.title = 'Frontend Interview Wiki (WIP)';
-  }, [route.path]);
+  useDocumentTitle(title);
+  useNavigationFocus(route, mainRef);
 
   return (
     <div className="layout">
-      <a className="skip-link" href="#main">К содержимому</a>
+      <a
+        className="skip-link"
+        href="#main"
+        onClick={(event) => {
+          event.preventDefault();
+          mainRef.current?.focus();
+        }}
+      >
+        К содержимому
+      </a>
       <Sidebar route={route} open={menuOpen} onNavigate={() => setMenuOpen(false)} />
       {menuOpen && <div className="backdrop" onClick={() => setMenuOpen(false)} aria-hidden="true" />}
       <div className="layout__main">
@@ -22,11 +34,11 @@ export function App() {
           <button className="btn btn--ghost topbar__menu" aria-label="Открыть меню" aria-expanded={menuOpen} onClick={() => setMenuOpen((v) => !v)}>
             ☰
           </button>
-          <a className="btn btn--ghost" href={buildHref('/search')}>🔎 Поиск</a>
+          <a className="btn btn--ghost" href={routes.search()}>🔎 Поиск</a>
           <ThemeToggle />
         </header>
-        <main id="main" tabIndex={-1}>
-          <Router route={route} />
+        <main id="main" ref={mainRef} tabIndex={-1}>
+          {element}
         </main>
       </div>
     </div>

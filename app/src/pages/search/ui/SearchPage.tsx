@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { pageHref, SECTIONS } from '@/entities/content';
 import { searchPages } from '@/features/search';
+import { routes } from '@/shared/config';
 import { navigate } from '@/shared/lib';
 
 export function SearchPage({ query }: { readonly query: string }) {
@@ -15,7 +16,7 @@ export function SearchPage({ query }: { readonly query: string }) {
         defaultValue={query}
         placeholder="Например: замыкание, useEffect, FSD, CORS"
         aria-label="Поисковый запрос"
-        onChange={(e) => navigate('/search', { q: e.target.value })}
+        onChange={(e) => navigate(routes.search(e.target.value), { replace: true })}
       />
       {query.trim().length > 1 && <p className="muted">Найдено страниц: {hits.length}</p>}
       <ul className="search-results">

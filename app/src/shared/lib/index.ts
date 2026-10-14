@@ -1,3 +1,3 @@
-export { useRoute, navigate, buildHref, type Route } from './router';
+export { useRoute, navigate, matchPath, buildPath, toHref, type Route, type PathParams, type HrefOptions } from './router';
 export { readJson, writeJson, readString, writeString } from './storage';
 export { stripMarkdown, normalizeKey, withHardBreaks, pluralRu, percent, shuffle } from './text';

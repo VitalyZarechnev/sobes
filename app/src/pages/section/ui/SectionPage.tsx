@@ -1,7 +1,8 @@
-import { getPage, quizHref, sectionPages, SECTIONS } from '@/entities/content';
+import { getPage, sectionPages, SECTIONS } from '@/entities/content';
 import { pagesCounter, useProgressState } from '@/entities/progress';
 import { quizStats, quizzesOfSection } from '@/entities/quiz';
 import { MarkdownView } from '@/widgets/markdown-view';
+import { routes } from '@/shared/config';
 import { percent } from '@/shared/lib';
 import { NotFound, ProgressBar } from '@/shared/ui';
 
@@ -39,7 +40,7 @@ export function SectionPage({ sectionId, anchor }: SectionPageProps) {
               const s = quizStats(quiz, state.quizzes[quiz.id]);
               return (
                 <li key={quiz.id}>
-                  <a href={quizHref(quiz.id)}>{quiz.title}</a>
+                  <a href={routes.quiz(quiz.id)}>{quiz.title}</a>
                   <span className="muted">
                     {s.answered}/{s.questions} вопросов{s.tasks > 0 && ` · задачи ${s.solved}/${s.tasks}`}
                   </span>

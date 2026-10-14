@@ -1,6 +1,6 @@
-import { quizHref } from '@/entities/content';
 import { useProgressState } from '@/entities/progress';
 import { getQuiz, quizStats } from '@/entities/quiz';
+import { routes } from '@/shared/config';
 import { percent } from '@/shared/lib';
 import { ProgressBar } from '@/shared/ui';
 
@@ -10,7 +10,7 @@ export function TopicQuizCard({ pageId }: { readonly pageId: string }) {
   if (!quiz) return null;
   const stats = quizStats(quiz, state.quizzes[quiz.id]);
   return (
-    <a className="topic-quiz" href={quizHref(quiz.id)}>
+    <a className="topic-quiz" href={routes.quiz(quiz.id)}>
       <span className="topic-quiz__icon" aria-hidden="true">🧪</span>
       <span className="topic-quiz__body">
         <strong>Тест и задачи по теме</strong>

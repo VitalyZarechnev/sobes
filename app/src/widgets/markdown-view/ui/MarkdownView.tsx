@@ -5,9 +5,8 @@ import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import rehypeSlug from 'rehype-slug';
 import rehypeHighlight from 'rehype-highlight';
-import { checklistKey, getPage, pageHref, resolveLink, type Page } from '@/entities/content';
+import { checklistKey, getPage, linkUrl, opensInNewTab, resolveLink, type Page } from '@/entities/content';
 import { pageCounter, progressActions, useProgressState } from '@/entities/progress';
-import { buildHref } from '@/shared/lib';
 import { highlightOptions, ProgressBar } from '@/shared/ui';
 import { firstHref, ownText } from '../lib/hast';
 
@@ -18,10 +17,7 @@ interface MarkdownViewProps {
 
 export function MarkdownView({ page, anchor }: MarkdownViewProps) {
   useEffect(() => {
-    if (!anchor) {
-      window.scrollTo({ top: 0 });
-      return;
-    }
+    if (!anchor) return;
     const target = document.getElementById(anchor) ?? document.getElementById(anchor.toLowerCase());
     target?.scrollIntoView({ block: 'start' });
   }, [page.id, anchor]);
@@ -29,22 +25,8 @@ export function MarkdownView({ page, anchor }: MarkdownViewProps) {
   const components = useMemo<Components>(() => {
     const Link = ({ href = '', children, node: _node, ...rest }: ComponentProps<'a'> & ExtraProps) => {
       const link = resolveLink(page.id, href);
-      switch (link.kind) {
-        case 'external':
-          return <a {...rest} href={link.href} target="_blank" rel="noopener noreferrer">{children}</a>;
-        case 'page':
-          return <a {...rest} href={pageHref(link.pageId, link.anchor)}>{children}</a>;
-        case 'anchor':
-          return <a {...rest} href={pageHref(page.id, link.anchor)}>{children}</a>;
-        case 'quiz':
-          return <a {...rest} href={buildHref(`/quiz/${link.quizId}`)}>{children}</a>;
-        case 'route':
-          return <a {...rest} href={link.href}>{children}</a>;
-        case 'quizzes':
-          return <a {...rest} href={buildHref('/quizzes')}>{children}</a>;
-        case 'file':
-          return <a {...rest} href={link.path} target="_blank" rel="noopener noreferrer">{children}</a>;
-      }
+      const newTab = opensInNewTab(link) ? { target: '_blank', rel: 'noopener noreferrer' } : {};
+      return <a {...rest} {...newTab} href={linkUrl(page.id, link)}>{children}</a>;
     };
 
     const ListItem = ({ children, node, className, ...rest }: ComponentProps<'li'> & ExtraProps) => {

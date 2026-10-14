@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
-import { AVAILABLE_SECTIONS, getPage, pageHref, PAGES } from '@/entities/content';
+import { AVAILABLE_SECTIONS, contentUrl, getPage, pageHref, PAGES } from '@/entities/content';
 import { pagesCounter, progressActions, readLastPage, useProgressState } from '@/entities/progress';
 import { QUIZZES, quizStats } from '@/entities/quiz';
 import { ProgressBackup } from '@/features/progress-backup';
 import { SectionCard } from '@/widgets/section-card';
-import { buildHref, percent } from '@/shared/lib';
+import { routes } from '@/shared/config';
+import { percent } from '@/shared/lib';
 import { InlineMarkdown, ProgressBar } from '@/shared/ui';
 import { parseRoadmapDays } from '../lib/roadmapDays';
 
@@ -70,7 +71,7 @@ export function HomePage() {
                     onChange={() => progressActions.toggleCheck(item.key)}
                     aria-label="Отметить пункт плана"
                   />
-                  <InlineMarkdown text={item.text.replace(/\]\((?!https?:)([^)]+)\)/g, (_m, href: string) => `](${href.startsWith('#') ? href : resolveRoadmapHref(href)})`)} />
+                  <InlineMarkdown text={item.text} urlTransform={roadmapUrl} />
                 </li>
               ))}
             </ul>
@@ -87,8 +88,8 @@ export function HomePage() {
             <p className="muted">Начните с роадмапа — он ведёт по разделам день за днём.</p>
           )}
           <div className="actions">
-            <a className="btn" href={buildHref('/quizzes')}>🧪 Экзамен по пройденному</a>
-            <a className="btn" href={buildHref('/journal')}>📓 Запись в дневник</a>
+            <a className="btn" href={routes.quizzes()}>🧪 Экзамен по пройденному</a>
+            <a className="btn" href={routes.journal()}>📓 Запись в дневник</a>
           </div>
         </section>
       </div>
@@ -111,8 +112,4 @@ export function HomePage() {
   );
 }
 
-const resolveRoadmapHref = (href: string): string => {
-  const [path = '', anchor] = href.split('#');
-  if (path.endsWith('.md')) return pageHref(path.replace(/\.md$/, ''), anchor ?? null);
-  return href;
-};
+const roadmapUrl = (href: string): string => contentUrl('ROADMAP', href);

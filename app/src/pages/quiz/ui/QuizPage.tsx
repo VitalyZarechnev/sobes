@@ -1,17 +1,13 @@
-import { useEffect } from 'react';
-import { getPage, pageHref, sectionHref, SECTIONS } from '@/entities/content';
+import { getPage, pageHref, SECTIONS } from '@/entities/content';
 import { progressActions, useProgressState } from '@/entities/progress';
 import { getQuiz } from '@/entities/quiz';
 import { QuizRunner } from '@/widgets/quiz-runner';
-import { buildHref } from '@/shared/lib';
+import { routes } from '@/shared/config';
 import { NotFound } from '@/shared/ui';
 
 export function QuizPage({ quizId }: { readonly quizId: string }) {
   const state = useProgressState();
   const quiz = getQuiz(quizId);
-  useEffect(() => {
-    if (quiz) document.title = `Тест: ${quiz.title}`;
-  }, [quiz]);
   if (!quiz) return <NotFound />;
 
   const section = SECTIONS.find((s) => s.id === quiz.section);
@@ -21,11 +17,11 @@ export function QuizPage({ quizId }: { readonly quizId: string }) {
   return (
     <div className="page">
       <nav className="breadcrumbs" aria-label="Хлебные крошки">
-        <a href={buildHref('/quizzes')}>Тесты</a>
+        <a href={routes.quizzes()}>Тесты</a>
         {section && (
           <>
             <span aria-hidden="true">›</span>
-            <a href={sectionHref(section.id)}>{section.title}</a>
+            <a href={routes.section(section.id)}>{section.title}</a>
           </>
         )}
       </nav>

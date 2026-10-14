@@ -1,6 +1,7 @@
-import { SECTION_TOPICS, sectionHref, sectionPages, type Section } from '@/entities/content';
+import { SECTION_TOPICS, sectionPages, type Section } from '@/entities/content';
 import { pagesCounter, useProgressState } from '@/entities/progress';
 import { quizStats, quizzesOfSection } from '@/entities/quiz';
+import { routes } from '@/shared/config';
 import { percent } from '@/shared/lib';
 import { ProgressBar } from '@/shared/ui';
 
@@ -18,7 +19,7 @@ export function SectionCard({ section }: { readonly section: Section }) {
   const value = percent(counter.done, counter.total);
 
   return (
-    <a className={`section-card ${value === 100 ? 'section-card--done' : ''}`} href={sectionHref(section.id)}>
+    <a className={`section-card ${value === 100 ? 'section-card--done' : ''}`} href={routes.section(section.id)}>
       <div className="section-card__head">
         <span className="section-card__icon" aria-hidden="true">{section.icon}</span>
         <span className="section-card__title">{section.title}</span>

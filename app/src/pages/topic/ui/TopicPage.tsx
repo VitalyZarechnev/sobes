@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
-import { adjacentTopics, getPage, pageHref, sectionHref, SECTIONS } from '@/entities/content';
+import { adjacentTopics, getPage, pageHref, SECTIONS } from '@/entities/content';
 import { pageCounter, rememberLastPage, useProgressState } from '@/entities/progress';
 import { MarkdownView } from '@/widgets/markdown-view';
 import { TopicQuizCard } from '@/widgets/topic-quiz-card';
+import { routes } from '@/shared/config';
 import { NotFound, ProgressBar } from '@/shared/ui';
 
 interface TopicPageProps {
@@ -16,7 +17,6 @@ export function TopicPage({ pageId, anchor }: TopicPageProps) {
 
   useEffect(() => {
     if (page?.sectionId) rememberLastPage(page.id);
-    if (page) document.title = `${page.title} · Frontend Interview Wiki`;
   }, [page]);
 
   if (!page) return <NotFound />;
@@ -28,7 +28,7 @@ export function TopicPage({ pageId, anchor }: TopicPageProps) {
     <div className="page">
       {section && (
         <nav className="breadcrumbs" aria-label="Хлебные крошки">
-          <a href={sectionHref(section.id)}>
+          <a href={routes.section(section.id)}>
             {section.icon} {section.title}
           </a>
           <span aria-hidden="true">›</span>

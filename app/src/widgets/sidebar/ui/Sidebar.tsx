@@ -1,6 +1,7 @@
-import { AVAILABLE_SECTIONS, pageHref, SECTION_TOPICS, sectionHref, sectionPages } from '@/entities/content';
+import { AVAILABLE_SECTIONS, pageHref, SECTION_TOPICS, sectionPages } from '@/entities/content';
 import { pageCounter, pagesCounter, useProgressState } from '@/entities/progress';
-import { buildHref, percent, type Route } from '@/shared/lib';
+import { PATHS, routes } from '@/shared/config';
+import { matchPath, percent, toHref, type Route } from '@/shared/lib';
 import { ProgressBar } from '@/shared/ui';
 
 interface SidebarProps {
@@ -10,35 +11,35 @@ interface SidebarProps {
 }
 
 const NAV = [
-  { path: '/', label: '🏠 Главная' },
-  { path: '/p/ROADMAP', label: '🗺 Роадмап' },
-  { path: '/journal', label: '📓 Дневник' },
-  { path: '/quizzes', label: '🧪 Тесты и экзамен' },
-  { path: '/algo', label: '🧮 Задачи на алгоритмы' },
-  { path: '/p/COVERAGE', label: '✅ Карта покрытия тем' },
-  { path: '/search', label: '🔎 Поиск' },
+  { href: routes.home(), label: '🏠 Главная' },
+  { href: pageHref('ROADMAP'), label: '🗺 Роадмап' },
+  { href: routes.journal(), label: '📓 Дневник' },
+  { href: routes.quizzes(), label: '🧪 Тесты и экзамен' },
+  { href: routes.algo(), label: '🧮 Задачи на алгоритмы' },
+  { href: pageHref('COVERAGE'), label: '✅ Карта покрытия тем' },
+  { href: routes.search(), label: '🔎 Поиск' },
 ] as const;
 
-const currentSectionId = (route: Route): string | null => {
-  const match = /^\/(?:s|p)\/(\d\d-[\w-]+)/.exec(route.path);
-  return match?.[1] ?? null;
-};
+const currentSectionId = (route: Route): string | null =>
+  matchPath(PATHS.section, route.path)?.sectionId ?? matchPath(PATHS.topic, route.path)?.pageId.split('/')[0] ?? null;
 
 export function Sidebar({ route, open, onNavigate }: SidebarProps) {
   const state = useProgressState();
   const activeSection = currentSectionId(route);
+  const currentHref = toHref(route.path);
+  const ariaCurrent = (href: string) => (href === currentHref ? 'page' : undefined);
 
   return (
     <nav className={`sidebar ${open ? 'sidebar--open' : ''}`} aria-label="Навигация по вики" onClick={(e) => (e.target as HTMLElement).closest('a') && onNavigate()}>
-      <a className="sidebar__brand" href="#/">
+      <a className="sidebar__brand" href={routes.home()}>
         <span className="wip-badge" title="Вики в процессе наполнения">WIP · work in progress</span>
         Frontend Interview Wiki
         <span className="muted">Senior · Lead</span>
       </a>
       <ul className="sidebar__nav">
         {NAV.map((item) => (
-          <li key={item.path}>
-            <a href={buildHref(item.path)} aria-current={route.path === item.path ? 'page' : undefined}>
+          <li key={item.href}>
+            <a href={item.href} aria-current={ariaCurrent(item.href)}>
               {item.label}
             </a>
           </li>
@@ -51,7 +52,7 @@ export function Sidebar({ route, open, onNavigate }: SidebarProps) {
           const isActive = activeSection === section.id;
           return (
             <li key={section.id} className={isActive ? 'is-active' : ''}>
-              <a href={sectionHref(section.id)} aria-current={route.path === `/s/${section.id}` ? 'page' : undefined}>
+              <a href={routes.section(section.id)} aria-current={ariaCurrent(routes.section(section.id))}>
                 <span>
                   {section.icon} {section.title}
                 </span>
@@ -65,7 +66,7 @@ export function Sidebar({ route, open, onNavigate }: SidebarProps) {
                     const done = c.total > 0 && c.done === c.total;
                     return (
                       <li key={topic.id}>
-                        <a href={pageHref(topic.id)} aria-current={route.path === `/p/${topic.id}` ? 'page' : undefined}>
+                        <a href={pageHref(topic.id)} aria-current={ariaCurrent(pageHref(topic.id))}>
                           <span className={done ? 'topic-done' : ''}>{done ? '✓ ' : ''}{topic.title}</span>
                         </a>
                       </li>
