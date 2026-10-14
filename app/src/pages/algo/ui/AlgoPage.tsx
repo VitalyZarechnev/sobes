@@ -13,13 +13,16 @@ interface Problem {
   readonly key: string;
   readonly quizId: string;
   readonly index: number;
-  readonly task: Task;
+  readonly task: Task & { readonly difficulty: Difficulty };
 }
 
 const PROBLEMS: readonly Problem[] = quizzesOfSection(ALGO_SECTION).flatMap((quiz) =>
   quiz.tasks
-    .map((task, index) => ({ key: draftKey(quiz.id, task.id), quizId: quiz.id, index, task }))
-    .filter(({ task }) => task.tags?.length),
+    .flatMap((task, index) =>
+      task.difficulty && task.tags?.length
+        ? [{ key: draftKey(quiz.id, task.id), quizId: quiz.id, index, task: { ...task, difficulty: task.difficulty } }]
+        : [],
+    ),
 );
 
 const findProblem = (problemKey: string): Problem | undefined => {
@@ -120,7 +123,7 @@ export function AlgoPage({ problemKey }: { readonly problemKey: string | null })
                 <tr key={p.key}>
                   <td>{isSolved(p) ? '✅' : '⬜'}</td>
                   <td><a href={routes.algo(p.key)}>{p.task.title}</a></td>
-                  <td><span className={`difficulty difficulty--${p.task.difficulty ?? 'easy'}`}>{DIFFICULTY_LABEL[p.task.difficulty ?? 'easy']}</span></td>
+                  <td><span className={`difficulty difficulty--${p.task.difficulty}`}>{DIFFICULTY_LABEL[p.task.difficulty]}</span></td>
                   <td className="muted">{p.task.tags?.join(', ')}</td>
                 </tr>
               ))}

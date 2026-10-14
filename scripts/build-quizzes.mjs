@@ -51,6 +51,8 @@ const taskKey = (t) => t.title;
 
 const TYPES = new Set(['single', 'multi', 'output', 'order', 'open']);
 const LEVELS = new Set(['middle', 'senior', 'lead']);
+const DIFFICULTIES = new Set(['easy', 'medium', 'hard']);
+const ALGO_SECTION = '13-algorithms';
 
 const walk = (dir) =>
   readdirSync(dir).flatMap((name) => {
@@ -78,13 +80,19 @@ const validateQuestion = (q, where) => {
   return errors;
 };
 
-const validateTask = (t, where) => {
+const validateTask = (t, where, section) => {
   const errors = [];
   const fail = (msg) => errors.push(`${where}: ${msg}`);
   if (!t.title) fail('нет title');
   if (!t.prompt) fail('нет prompt');
   if (!t.solution) fail('нет solution');
   if (!LEVELS.has(t.level)) fail(`неизвестный level "${t.level}"`);
+  if (t.difficulty !== undefined && !DIFFICULTIES.has(t.difficulty)) fail(`неизвестный difficulty "${t.difficulty}"`);
+  if (t.tags !== undefined && (!Array.isArray(t.tags) || t.tags.some((tag) => typeof tag !== 'string' || !tag))) fail('tags должен быть массивом непустых строк');
+  if (section === ALGO_SECTION) {
+    if (!t.difficulty) fail('задаче на алгоритмы нужен difficulty — иначе её не будет в каталоге');
+    if (!Array.isArray(t.tags) || !t.tags.length) fail('задаче на алгоритмы нужны tags — иначе её не будет в каталоге');
+  }
   if (t.tests !== undefined) {
     if (!Array.isArray(t.tests)) fail('tests должен быть массивом');
     else t.tests.forEach((test, i) => (!test.name || !test.code) && fail(`tests[${i}] без name/code`));
@@ -162,7 +170,7 @@ for (const file of files) {
   const questions = quiz.questions ?? [];
   const tasks = quiz.tasks ?? [];
   questions.forEach((q, i) => errors.push(...validateQuestion(q, `${rel} q[${i}]`)));
-  tasks.forEach((t, i) => errors.push(...validateTask(t, `${rel} task[${i}]`)));
+  tasks.forEach((t, i) => errors.push(...validateTask(t, `${rel} task[${i}]`, quiz.section)));
   errors.push(...validateIdentities(questions, questionKey, `${rel} q`));
   errors.push(...validateIdentities(tasks, taskKey, `${rel} task`));
 
