@@ -56,8 +56,11 @@
 |---|---|
 | Vite, Webpack, Babel: тонкости настройки | [Сборщики](10-tooling-testing/01-bundlers.md) |
 | Свои плагины и лоадеры | [Плагины и лоадеры](10-tooling-testing/02-plugins-and-loaders.md) |
+| E2E на Playwright: локаторы, автоожидание, фикстуры, trace, шардинг, flaky | [Playwright](10-tooling-testing/07-playwright.md) |
 | Стратегия тестирования, соотношение unit / integration / e2e, тесты async-кода, мок API | [Стратегия тестирования](10-tooling-testing/04-testing-strategy.md) · [React: тестирование](03-react/06-patterns-and-testing.md) · [Качество и delivery](07-lead/06-quality-and-delivery.md) |
 | CI/CD, деплой, мониторинг | [CI/CD и DevOps](10-tooling-testing/05-ci-cd-devops.md) · [Ошибки и мониторинг](15-production/01-errors-and-monitoring.md) |
+| Как код работает на инфраструктуре: Docker, Kubernetes, nginx/CDN, реплики, SIGTERM, пробы, память SSR | [Next.js на инфраструктуре](15-production/06-nextjs-on-infrastructure.md) |
+| Unix-консоль: конвейеры, процессы и сигналы, curl, ssh, права | [Консоль](17-debugging-git-team/05-unix-console.md) |
 | Пакетные менеджеры, монорепо, линтеры, supply chain | [Пакеты и монорепо](10-tooling-testing/06-packages-monorepo-linting.md) · [Релизы и зависимости](15-production/04-releases-and-dependencies.md) |
 | Feature flags, A/B-эксперименты, безопасная раскатка | [Feature flags](15-production/03-feature-flags-experiments.md) · [CI/CD](10-tooling-testing/05-ci-cd-devops.md) |
 | XSS, CSRF, httpOnly cookies vs localStorage, CSP | [Безопасность](06-web-platform/06-security.md) · [Аутентификация](16-forms-i18n-auth/03-auth.md) |
@@ -77,6 +80,7 @@
 
 | Тема | Где разобрано |
 |---|---|
+| Подготовка под конкретную вакансию и интервью с CTO | [Подготовка под вакансию](09-final/01-vacancy-cto-interview.md) |
 | Вопросы уровня middle (разминка на любом интервью) | `00-middle-questions.md` в разделах [JS](01-javascript/00-middle-questions.md), [TS](02-typescript/00-middle-questions.md), [React](03-react/00-middle-questions.md), [Vue](04-vue/00-middle-questions.md), [Платформа](06-web-platform/00-middle-questions.md), [Архитектура](05-architecture/00-middle-questions.md), [Инструменты](10-tooling-testing/00-middle-questions.md) |
 | Вопросы с реальных собеседований (roasted.cv, Практикум, itcodik, kalashnikof) | Тест «Вопросы с реальных собеседований» в каждом разделе — на [странице тестов](#/quizzes) |
 | AI-компетенции и работа с агентами | [Раздел AI](08-ai/README.md) |
