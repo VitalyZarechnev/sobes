@@ -56,6 +56,7 @@
 |---|---|
 | Vite, Webpack, Babel: тонкости настройки | [Сборщики](10-tooling-testing/01-bundlers.md) |
 | Свои плагины и лоадеры | [Плагины и лоадеры](10-tooling-testing/02-plugins-and-loaders.md) |
+| Минификация (Terser, esbuild, SWC, Oxc), gzip/Brotli/zstd, обфускация и её границы | [Минификация, сжатие и обфускация](10-tooling-testing/08-minification-obfuscation.md) · [Оптимизация бандла](10-tooling-testing/03-bundle-optimization.md) |
 | E2E на Playwright: локаторы, автоожидание, фикстуры, trace, шардинг, flaky | [Playwright](10-tooling-testing/07-playwright.md) |
 | Стратегия тестирования, соотношение unit / integration / e2e, тесты async-кода, мок API | [Стратегия тестирования](10-tooling-testing/04-testing-strategy.md) · [React: тестирование](03-react/06-patterns-and-testing.md) · [Качество и delivery](07-lead/06-quality-and-delivery.md) |
 | CI/CD, деплой, мониторинг | [CI/CD и DevOps](10-tooling-testing/05-ci-cd-devops.md) · [Ошибки и мониторинг](15-production/01-errors-and-monitoring.md) |
